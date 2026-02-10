@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  businesses Business[]
+}
+
+model Business {
+  id               String   @id @default(uuid())
+  userId           String
+  name             String
+  description      String?
+  sourceUrl        String?
+  logo             String?
+  heroImage        String?
+  primaryColor     String   @default("#6366f1")
+  secondaryColor   String   @default("#8b5cf6")
+  businessType     String   @default("service") // service, ecommerce, restaurant, portfolio, etc.
+  services         String?  // JSON string of services array
+  phone            String?
+  email            String?
+  address          String?
+  city             String?
+  calendlyUrl      String?
+  socialLinks      String?  // JSON: { instagram, facebook, twitter, etc. }
+  openingHours     String?  // JSON: { mon: "9-5", tue: "9-5", etc. }
+  leadFormFields   String?  // JSON: Custom lead form fields configuration
+  autoResponder    Boolean  @default(true) // Send auto-response to leads
+  // Google Calendar Integration
+  calendarConnected Boolean @default(false)
+  calendarTokens    String? // JSON: { accessToken, refreshToken, expiresAt } - encrypted in prod
+  meetingDuration   Int     @default(30) // Default meeting duration in minutes
+  meetingBuffer     Int     @default(15) // Buffer between meetings
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site     Site?
+  products Product[]
+  meetings Meeting[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  businessId  String
+  name        String
+  description String?
+  price       Float?
+  salePrice   Float?
+  image       String?
+  category    String?
+  inStock     Boolean  @default(true)
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+model Site {
+  id                  String   @id @default(uuid())
+  businessId          String   @unique
+  slug                String   @unique
+  headline            String
+  subheadline         String?
+  aboutText           String?
+  ctaText             String   @default("Get Started Today")
+  features            String?  // JSON array of feature highlights
+  testimonials        String?  // JSON array of testimonials
+  isPublished         Boolean  @default(true)
+  heroVariant         String   @default("A") // For A/B testing
+  viewsA              Int      @default(0)
+  viewsB              Int      @default(0)
+  conversionsA        Int      @default(0)
+  conversionsB        Int      @default(0)
+  // AI-enhanced metadata from Cohere
+  tagline             String?
+  metaDescription     String?
+  valuePropositions   String?  // JSON array of value propositions
+  serviceDescriptions String?  // JSON array of {name, description}
+  socialMediaBio      String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leads    Lead[]
+  orders   Order[]
+}
+
+model Lead {
+  id        String     @id @default(uuid())
+  siteId    String
+  name      String
+  email     String
+  phone     String?
+  message   String?
+  status    LeadStatus @default(NEW)
+  variant   String?    // Which A/B variant they saw
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  source    String?    // lead source: "form", "checkout", etc.
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderId         String      @unique
+  siteId          String
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  shippingAddress String      // JSON string
+  items           String      // JSON string of order items
+  total           Float
+  notes           String?
+  status          OrderStatus @default(PENDING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  BOOKED
+  CONVERTED
+  LOST
+}
+
+// Meeting model for calendar integration
+model Meeting {
+  id              String        @id @default(uuid())
+  businessId      String
+  leadId          String?       // Optional link to lead
+  calendarEventId String?       // Google Calendar event ID
+  title           String
+  description     String?
+  startTime       DateTime
+  endTime         DateTime
+  attendeeName    String
+  attendeeEmail   String
+  attendeePhone   String?
+  meetLink        String?       // Google Meet link if generated
+  status          MeetingStatus @default(SCHEDULED)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}

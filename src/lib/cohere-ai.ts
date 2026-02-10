@@ -1,0 +1,636 @@
+/**
+ * Cohere AI Integration for Content Generation
+ * Generates compelling headlines, descriptions, and website copy
+ */
+
+const COHERE_API_KEY = process.env.COHERE_API_KEY || process.env.cohere_api_key || '';
+const COHERE_API_URL = 'https://api.cohere.ai/v1';
+
+// ==================== TYPES ====================
+
+export interface BusinessContext {
+  name: string;
+  description?: string;
+  businessType: string;
+  services?: string[];
+  products?: { name: string; description?: string; price?: number }[];
+  features?: string[];
+  city?: string;
+  industry?: string;
+  targetAudience?: string;
+  uniqueSellingPoints?: string[];
+}
+
+export interface GeneratedContent {
+  headline: string;
+  subheadline: string;
+  aboutText: string;
+  ctaText: string;
+  metaDescription: string;
+  tagline: string;
+  valuePropositions: string[];
+  serviceDescriptions: { name: string; description: string }[];
+  testimonialPrompts: string[];
+  emailSubjectLines: string[];
+  socialMediaBio: string;
+}
+
+export interface CohereResponse {
+  id: string;
+  generations?: { id: string; text: string }[];
+  text?: string;
+  meta?: { api_version: { version: string } };
+}
+
+// ==================== COHERE API CALLS ====================
+
+/**
+ * Call Cohere's Generate API
+ */
+async function cohereGenerate(
+  prompt: string,
+  options: {
+    maxTokens?: number;
+    temperature?: number;
+    stopSequences?: string[];
+  } = {}
+): Promise<string | null> {
+  if (!COHERE_API_KEY) {
+    console.warn('Cohere API key not configured');
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${COHERE_API_URL}/generate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${COHERE_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Cohere-Version': '2022-12-06',
+      },
+      body: JSON.stringify({
+        model: 'command',
+        prompt,
+        max_tokens: options.maxTokens || 500,
+        temperature: options.temperature || 0.7,
+        stop_sequences: options.stopSequences || ['--END--'],
+        return_likelihoods: 'NONE',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Cohere API error:', error);
+      return null;
+    }
+
+    const data: CohereResponse = await response.json();
+    return data.generations?.[0]?.text?.trim() || data.text?.trim() || null;
+  } catch (error) {
+    console.error('Cohere request failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Call Cohere's Chat API (for more conversational generation)
+ */
+async function cohereChat(
+  message: string,
+  preamble?: string
+): Promise<string | null> {
+  if (!COHERE_API_KEY) {
+    console.warn('Cohere API key not configured');
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${COHERE_API_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${COHERE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'command',
+        message,
+        preamble: preamble || 'You are an expert marketing copywriter who creates compelling, conversion-focused content for businesses.',
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Cohere Chat API error:', error);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.text?.trim() || null;
+  } catch (error) {
+    console.error('Cohere chat request failed:', error);
+    return null;
+  }
+}
+
+// ==================== CONTENT GENERATION ====================
+
+/**
+ * Generate all website content for a business
+ */
+export async function generateBusinessContent(
+  context: BusinessContext
+): Promise<GeneratedContent> {
+  // Try AI generation first, fall back to templates
+  const [
+    headlineResult,
+    aboutResult,
+    valuePropsResult,
+    metaResult,
+  ] = await Promise.all([
+    generateHeadlineAndSubheadline(context),
+    generateAboutText(context),
+    generateValuePropositions(context),
+    generateMetaDescription(context),
+  ]);
+
+  // Generate service descriptions if services exist
+  let serviceDescriptions: { name: string; description: string }[] = [];
+  if (context.services && context.services.length > 0) {
+    serviceDescriptions = await generateServiceDescriptions(context);
+  }
+
+  return {
+    headline: headlineResult?.headline || getFallbackHeadline(context),
+    subheadline: headlineResult?.subheadline || getFallbackSubheadline(context),
+    aboutText: aboutResult || getFallbackAboutText(context),
+    ctaText: getCTAText(context.businessType),
+    metaDescription: metaResult || getFallbackMetaDescription(context),
+    tagline: headlineResult?.tagline || getFallbackTagline(context),
+    valuePropositions: valuePropsResult || getFallbackValueProps(context),
+    serviceDescriptions,
+    testimonialPrompts: getTestimonialPrompts(context),
+    emailSubjectLines: await generateEmailSubjectLines(context),
+    socialMediaBio: await generateSocialMediaBio(context) || getFallbackSocialBio(context),
+  };
+}
+
+/**
+ * Generate headline and subheadline
+ */
+async function generateHeadlineAndSubheadline(
+  context: BusinessContext
+): Promise<{ headline: string; subheadline: string; tagline: string } | null> {
+  const prompt = `You are an expert marketing copywriter. Generate a compelling headline, subheadline, and tagline for a ${context.businessType} business.
+
+Business Name: ${context.name}
+${context.description ? `Description: ${context.description}` : ''}
+${context.services?.length ? `Services: ${context.services.join(', ')}` : ''}
+${context.city ? `Location: ${context.city}` : ''}
+
+Requirements:
+- Headline: 5-10 words, powerful and attention-grabbing
+- Subheadline: 10-20 words, explains the value proposition
+- Tagline: 3-6 words, memorable brand slogan
+
+Format your response exactly like this:
+HEADLINE: [your headline]
+SUBHEADLINE: [your subheadline]
+TAGLINE: [your tagline]
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 200, temperature: 0.8 });
+  
+  if (!result) return null;
+
+  const headlineMatch = result.match(/HEADLINE:\s*(.+?)(?:\n|$)/i);
+  const subheadlineMatch = result.match(/SUBHEADLINE:\s*(.+?)(?:\n|$)/i);
+  const taglineMatch = result.match(/TAGLINE:\s*(.+?)(?:\n|$)/i);
+
+  if (!headlineMatch) return null;
+
+  return {
+    headline: headlineMatch[1].trim(),
+    subheadline: subheadlineMatch?.[1]?.trim() || '',
+    tagline: taglineMatch?.[1]?.trim() || '',
+  };
+}
+
+/**
+ * Generate about text
+ */
+async function generateAboutText(context: BusinessContext): Promise<string | null> {
+  const prompt = `Write a compelling "About Us" section for a ${context.businessType} business website.
+
+Business Name: ${context.name}
+${context.description ? `Current Description: ${context.description}` : ''}
+${context.services?.length ? `Services: ${context.services.join(', ')}` : ''}
+${context.city ? `Location: ${context.city}` : ''}
+${context.uniqueSellingPoints?.length ? `Unique Selling Points: ${context.uniqueSellingPoints.join(', ')}` : ''}
+
+Requirements:
+- 2-3 paragraphs (100-150 words total)
+- Professional but approachable tone
+- Focus on customer benefits
+- Include a subtle call-to-action
+- Don't use generic phrases like "we are passionate"
+
+Write the about text directly, no labels or formatting:
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 300, temperature: 0.7 });
+  return result?.replace(/--END--/g, '').trim() || null;
+}
+
+/**
+ * Generate value propositions
+ */
+async function generateValuePropositions(context: BusinessContext): Promise<string[] | null> {
+  const prompt = `Generate 4 compelling value propositions for a ${context.businessType} business.
+
+Business Name: ${context.name}
+${context.description ? `Description: ${context.description}` : ''}
+${context.services?.length ? `Services: ${context.services.join(', ')}` : ''}
+
+Requirements:
+- Each value prop should be 5-10 words
+- Focus on customer benefits, not features
+- Be specific, not generic
+- Start with action verbs or benefit statements
+
+Format: One value proposition per line, numbered 1-4.
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 200, temperature: 0.7 });
+  
+  if (!result) return null;
+
+  const lines = result
+    .split('\n')
+    .map(line => line.replace(/^\d+[\.\)]\s*/, '').trim())
+    .filter(line => line.length > 5 && line.length < 100);
+
+  return lines.length >= 3 ? lines.slice(0, 4) : null;
+}
+
+/**
+ * Generate meta description for SEO
+ */
+async function generateMetaDescription(context: BusinessContext): Promise<string | null> {
+  const prompt = `Write an SEO-optimized meta description for a ${context.businessType} business website.
+
+Business Name: ${context.name}
+${context.description ? `Description: ${context.description}` : ''}
+${context.services?.length ? `Services: ${context.services.slice(0, 3).join(', ')}` : ''}
+${context.city ? `Location: ${context.city}` : ''}
+
+Requirements:
+- Exactly 150-160 characters
+- Include the business name
+- Include a call-to-action
+- Be compelling and click-worthy
+${context.city ? `- Mention the location for local SEO` : ''}
+
+Write the meta description directly, no labels:
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 100, temperature: 0.6 });
+  const text = result?.replace(/--END--/g, '').trim();
+  
+  // Ensure it's within meta description limits
+  if (text && text.length > 160) {
+    return text.substring(0, 157) + '...';
+  }
+  return text || null;
+}
+
+/**
+ * Generate service descriptions
+ */
+async function generateServiceDescriptions(
+  context: BusinessContext
+): Promise<{ name: string; description: string }[]> {
+  if (!context.services || context.services.length === 0) {
+    return [];
+  }
+
+  const serviceList = context.services.slice(0, 6);
+  
+  const prompt = `Write brief, compelling descriptions for these ${context.businessType} services:
+
+Business: ${context.name}
+Services: ${serviceList.join(', ')}
+
+For each service, write a 15-25 word description focusing on customer benefits.
+
+Format each like this:
+SERVICE: [service name]
+DESCRIPTION: [description]
+
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 400, temperature: 0.7 });
+  
+  if (!result) {
+    // Return services with generic descriptions
+    return serviceList.map(name => ({
+      name,
+      description: `Professional ${name.toLowerCase()} services tailored to meet your specific needs.`,
+    }));
+  }
+
+  const descriptions: { name: string; description: string }[] = [];
+  const matches = result.matchAll(/SERVICE:\s*(.+?)\nDESCRIPTION:\s*(.+?)(?=\nSERVICE:|--END--|$)/gi);
+  
+  for (const match of matches) {
+    descriptions.push({
+      name: match[1].trim(),
+      description: match[2].trim(),
+    });
+  }
+
+  // Fill in any missing services
+  for (const service of serviceList) {
+    if (!descriptions.find(d => d.name.toLowerCase() === service.toLowerCase())) {
+      descriptions.push({
+        name: service,
+        description: `Expert ${service.toLowerCase()} solutions designed for your success.`,
+      });
+    }
+  }
+
+  return descriptions;
+}
+
+/**
+ * Generate email subject lines for marketing
+ */
+async function generateEmailSubjectLines(context: BusinessContext): Promise<string[]> {
+  const prompt = `Generate 5 compelling email subject lines for a ${context.businessType} business to use in their marketing.
+
+Business: ${context.name}
+${context.services?.length ? `Services: ${context.services.slice(0, 3).join(', ')}` : ''}
+
+Requirements:
+- Each subject line should be under 50 characters
+- Mix of urgency, curiosity, and value-based subjects
+- Avoid spam trigger words
+
+Format: One subject line per line, numbered 1-5.
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 200, temperature: 0.8 });
+  
+  if (!result) {
+    return [
+      `Discover what ${context.name} can do for you`,
+      `Your success starts here`,
+      `Limited time offer inside`,
+      `We have something special for you`,
+      `Quick question for you`,
+    ];
+  }
+
+  const lines = result
+    .split('\n')
+    .map(line => line.replace(/^\d+[\.\)]\s*/, '').trim())
+    .filter(line => line.length > 5 && line.length < 60);
+
+  return lines.length >= 3 ? lines.slice(0, 5) : [
+    `Discover what ${context.name} can do for you`,
+    `Your success starts here`,
+    `Limited time offer inside`,
+  ];
+}
+
+/**
+ * Generate social media bio
+ */
+async function generateSocialMediaBio(context: BusinessContext): Promise<string | null> {
+  const prompt = `Write a compelling social media bio for a ${context.businessType} business.
+
+Business: ${context.name}
+${context.description ? `Description: ${context.description}` : ''}
+${context.services?.length ? `Services: ${context.services.slice(0, 3).join(', ')}` : ''}
+${context.city ? `Location: ${context.city}` : ''}
+
+Requirements:
+- Maximum 150 characters
+- Include relevant emojis
+- Include a call-to-action
+- Be memorable and on-brand
+
+Write the bio directly:
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 80, temperature: 0.8 });
+  const text = result?.replace(/--END--/g, '').trim();
+  
+  if (text && text.length > 150) {
+    return text.substring(0, 147) + '...';
+  }
+  return text || null;
+}
+
+// ==================== SPECIALIZED GENERATORS ====================
+
+/**
+ * Generate product descriptions
+ */
+export async function generateProductDescription(
+  product: { name: string; description?: string; price?: number; category?: string },
+  businessContext: BusinessContext
+): Promise<string> {
+  const prompt = `Write a compelling product description for an e-commerce listing.
+
+Business: ${businessContext.name}
+Product Name: ${product.name}
+${product.description ? `Current Description: ${product.description}` : ''}
+${product.category ? `Category: ${product.category}` : ''}
+${product.price ? `Price: $${product.price}` : ''}
+
+Requirements:
+- 30-50 words
+- Highlight key benefits
+- Create desire and urgency
+- Be specific and vivid
+
+Write the description directly:
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 100, temperature: 0.7 });
+  return result?.replace(/--END--/g, '').trim() || 
+    product.description || 
+    `Discover the quality and craftsmanship of our ${product.name}. Perfect for those who appreciate excellence.`;
+}
+
+/**
+ * Generate testimonial request/prompt for business owners
+ */
+function getTestimonialPrompts(context: BusinessContext): string[] {
+  const prompts = [
+    `What problem did ${context.name} solve for you?`,
+    `How would you describe your experience with ${context.name}?`,
+    `What made you choose ${context.name} over other options?`,
+    `What results have you seen since working with ${context.name}?`,
+    `Would you recommend ${context.name}? Why?`,
+  ];
+  return prompts;
+}
+
+/**
+ * Generate lead follow-up email
+ */
+export async function generateLeadFollowUpEmail(
+  leadName: string,
+  businessContext: BusinessContext,
+  inquiry?: string
+): Promise<{ subject: string; body: string }> {
+  const prompt = `Write a personalized follow-up email for a business lead.
+
+Business: ${businessContext.name}
+Business Type: ${businessContext.businessType}
+Lead Name: ${leadName}
+${inquiry ? `Their Inquiry: ${inquiry}` : ''}
+${businessContext.services?.length ? `Our Services: ${businessContext.services.slice(0, 3).join(', ')}` : ''}
+
+Requirements:
+- Professional but warm tone
+- Reference their specific interest if known
+- Include a clear call-to-action
+- Keep it concise (under 150 words)
+
+Format:
+SUBJECT: [subject line]
+BODY:
+[email body]
+--END--`;
+
+  const result = await cohereGenerate(prompt, { maxTokens: 300, temperature: 0.7 });
+  
+  if (!result) {
+    return {
+      subject: `Following up on your inquiry - ${businessContext.name}`,
+      body: `Hi ${leadName},\n\nThank you for your interest in ${businessContext.name}. I wanted to personally follow up and see how we can help you.\n\nWould you have a few minutes for a quick call this week?\n\nBest regards,\nThe ${businessContext.name} Team`,
+    };
+  }
+
+  const subjectMatch = result.match(/SUBJECT:\s*(.+?)(?:\n|$)/i);
+  const bodyMatch = result.match(/BODY:\s*([\s\S]+?)(?:--END--|$)/i);
+
+  return {
+    subject: subjectMatch?.[1]?.trim() || `Following up - ${businessContext.name}`,
+    body: bodyMatch?.[1]?.trim() || `Hi ${leadName},\n\nThank you for reaching out. We'd love to help you.\n\nBest,\n${businessContext.name}`,
+  };
+}
+
+// ==================== FALLBACK CONTENT ====================
+
+function getFallbackHeadline(context: BusinessContext): string {
+  const headlines: Record<string, string> = {
+    restaurant: `Welcome to ${context.name}`,
+    ecommerce: `Shop the Best at ${context.name}`,
+    healthcare: `Your Health, Our Priority`,
+    fitness: `Transform Your Life Today`,
+    beauty: `Discover Your Best Self`,
+    realestate: `Find Your Dream Home`,
+    education: `Learn, Grow, Succeed`,
+    agency: `We Bring Ideas to Life`,
+    portfolio: `Creative Excellence`,
+    service: `Professional Solutions You Can Trust`,
+  };
+  return headlines[context.businessType] || `Welcome to ${context.name}`;
+}
+
+function getFallbackSubheadline(context: BusinessContext): string {
+  const subheadlines: Record<string, string> = {
+    restaurant: 'Experience exceptional dining with fresh ingredients and unforgettable flavors',
+    ecommerce: 'Premium products delivered to your doorstep with exceptional service',
+    healthcare: 'Compassionate care and cutting-edge treatment for you and your family',
+    fitness: 'Expert trainers, state-of-the-art facilities, and results that last',
+    beauty: 'Premium treatments and personalized care for your unique beauty',
+    realestate: 'Expert guidance to help you find the perfect property',
+    education: 'Quality education that prepares you for a successful future',
+    agency: 'Strategic solutions that drive growth and deliver results',
+    portfolio: 'Bringing creative visions to life with passion and precision',
+    service: 'Dedicated to delivering excellence in everything we do',
+  };
+  return subheadlines[context.businessType] || `Dedicated to serving ${context.city || 'our community'} with excellence`;
+}
+
+function getFallbackAboutText(context: BusinessContext): string {
+  return `${context.name} is committed to providing exceptional ${context.businessType} services${context.city ? ` in ${context.city}` : ''}. ${context.description || ''}\n\nWe take pride in delivering personalized solutions that meet your unique needs. Our team is dedicated to ensuring your complete satisfaction with every interaction.\n\nContact us today to learn how we can help you achieve your goals.`;
+}
+
+function getFallbackMetaDescription(context: BusinessContext): string {
+  const services = context.services?.slice(0, 2).join(' & ') || 'quality services';
+  return `${context.name}${context.city ? ` in ${context.city}` : ''} - ${services}. Contact us today for exceptional service and results.`;
+}
+
+function getFallbackTagline(context: BusinessContext): string {
+  const taglines: Record<string, string> = {
+    restaurant: 'Where Every Meal is Special',
+    ecommerce: 'Quality You Can Trust',
+    healthcare: 'Care That Makes a Difference',
+    fitness: 'Your Journey Starts Here',
+    beauty: 'Beauty Redefined',
+    realestate: 'Home is Where We Help',
+    education: 'Empowering Minds',
+    agency: 'Ideas That Inspire',
+    portfolio: 'Creating with Purpose',
+    service: 'Excellence Delivered',
+  };
+  return taglines[context.businessType] || 'Excellence in Every Detail';
+}
+
+function getFallbackValueProps(context: BusinessContext): string[] {
+  const valueProps: Record<string, string[]> = {
+    restaurant: ['Fresh ingredients daily', 'Exceptional service', 'Unforgettable atmosphere', 'Crafted with passion'],
+    ecommerce: ['Fast, free shipping', 'Quality guaranteed', 'Easy returns', '24/7 support'],
+    healthcare: ['Patient-centered care', 'Advanced treatments', 'Experienced team', 'Comfortable environment'],
+    fitness: ['Expert trainers', 'Modern equipment', 'Flexible schedules', 'Proven results'],
+    beauty: ['Premium products', 'Skilled professionals', 'Relaxing atmosphere', 'Personalized service'],
+    realestate: ['Local expertise', 'Transparent process', 'Dedicated support', 'Best market value'],
+    education: ['Expert instructors', 'Hands-on learning', 'Flexible options', 'Career support'],
+    agency: ['Creative solutions', 'Data-driven results', 'Transparent pricing', 'Dedicated team'],
+    service: ['Professional team', 'Quality guaranteed', 'Competitive pricing', 'Customer-first approach'],
+  };
+  return valueProps[context.businessType] || valueProps.service;
+}
+
+function getFallbackSocialBio(context: BusinessContext): string {
+  return `✨ ${context.name}${context.city ? ` | ${context.city}` : ''} | ${context.services?.[0] || 'Quality Service'} | DM for inquiries 📩`;
+}
+
+function getCTAText(businessType: string): string {
+  const ctas: Record<string, string> = {
+    restaurant: 'Reserve a Table',
+    ecommerce: 'Shop Now',
+    healthcare: 'Book Appointment',
+    fitness: 'Start Free Trial',
+    beauty: 'Book Now',
+    realestate: 'View Listings',
+    education: 'Enroll Today',
+    agency: 'Get a Quote',
+    portfolio: 'View Portfolio',
+    service: 'Get Started',
+  };
+  return ctas[businessType] || 'Contact Us';
+}
+
+// ==================== UTILITY ====================
+
+/**
+ * Check if Cohere API is configured
+ */
+export function isCohereConfigured(): boolean {
+  return Boolean(COHERE_API_KEY);
+}
+
+/**
+ * Test the Cohere connection
+ */
+export async function testCohereConnection(): Promise<boolean> {
+  const result = await cohereGenerate('Say "Hello" in one word.', { maxTokens: 10 });
+  return result !== null;
+}
