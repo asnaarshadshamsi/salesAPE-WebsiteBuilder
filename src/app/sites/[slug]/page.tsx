@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { SiteTemplate } from "@/components/SiteTemplate";
+import { WebsiteLaunchCelebration } from "@/components/WebsiteLaunchCelebration";
 import { selectVariant } from "@/lib/ai";
 import { trackPageView } from "@/actions/leads";
+import { BusinessStructuredData, WebsiteStructuredData } from "@/components/SEO";
 import type { Metadata } from "next";
 
 interface SitePageProps {
@@ -101,40 +103,73 @@ export default async function SitePage({ params }: SitePageProps) {
   }));
 
   return (
-    <SiteTemplate
-      site={{
-        id: site.id,
-        slug: site.slug,
-        headline: variant === "A" ? site.headline : (site.subheadline || site.headline),
-        subheadline: site.subheadline || null,
-        aboutText: site.aboutText || null,
-        ctaText: site.ctaText,
-        features,
-        testimonials,
-        variant,
-        // AI-enhanced content
-        tagline: site.tagline || null,
-        valuePropositions,
-        serviceDescriptions,
-      }}
-      business={{
-        name: business.name,
-        description: business.description || null,
-        logo: business.logo,
-        heroImage: business.heroImage,
-        primaryColor: business.primaryColor,
-        secondaryColor: business.secondaryColor,
-        businessType: business.businessType,
-        services,
-        phone: business.phone,
-        email: business.email,
-        address: business.address,
-        city: business.city,
-        calendlyUrl: business.calendlyUrl,
-        socialLinks,
-        openingHours,
-      }}
-      products={products}
-    />
+    <>
+      {/* Launch Celebration Modal (shows on first visit with ?new=true) */}
+      <WebsiteLaunchCelebration
+        businessName={business.name}
+        siteSlug={site.slug}
+        primaryColor={business.primaryColor}
+      />
+      
+      {/* Structured Data for SEO */}
+      <BusinessStructuredData
+        business={{
+          name: business.name,
+          description: business.description,
+          logo: business.logo,
+          phone: business.phone,
+          email: business.email,
+          address: business.address,
+          city: business.city,
+          businessType: business.businessType,
+        }}
+        site={{
+          headline: site.headline,
+          slug: site.slug,
+        }}
+        socialLinks={socialLinks}
+      />
+      <WebsiteStructuredData
+        business={{ name: business.name }}
+        site={{ headline: site.headline, slug: site.slug }}
+      />
+      
+      {/* Main Site Template */}
+      <SiteTemplate
+        site={{
+          id: site.id,
+          slug: site.slug,
+          headline: variant === "A" ? site.headline : (site.subheadline || site.headline),
+          subheadline: site.subheadline || null,
+          aboutText: site.aboutText || null,
+          ctaText: site.ctaText,
+          features,
+          testimonials,
+          variant,
+          // AI-enhanced content
+          tagline: site.tagline || null,
+          valuePropositions,
+          serviceDescriptions,
+        }}
+        business={{
+          name: business.name,
+          description: business.description || null,
+          logo: business.logo,
+          heroImage: business.heroImage,
+          primaryColor: business.primaryColor,
+          secondaryColor: business.secondaryColor,
+          businessType: business.businessType,
+          services,
+          phone: business.phone,
+          email: business.email,
+          address: business.address,
+          city: business.city,
+          calendlyUrl: business.calendlyUrl,
+          socialLinks,
+          openingHours,
+        }}
+        products={products}
+      />
+    </>
   );
 }

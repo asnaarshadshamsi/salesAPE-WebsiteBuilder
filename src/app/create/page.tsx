@@ -185,7 +185,8 @@ export default function CreatePage() {
     });
 
     if (result.success && result.siteSlug) {
-      router.push(`/dashboard?created=${result.siteSlug}`);
+      // Redirect directly to the generated website, not dashboard
+      router.push(`/sites/${result.siteSlug}?new=true`);
     } else {
       setError(result.error || "Failed to create business");
       setIsLoading(false);
