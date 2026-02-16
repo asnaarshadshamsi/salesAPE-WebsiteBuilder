@@ -1,10 +1,10 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { businessRepository } from "@/db/repositories";
 import { BusinessEditForm } from "@/components/BusinessEditForm";
 import { QRCodeCard } from "@/components/QRCodeCard";
-import { Rocket, ArrowLeft, LogOut, ExternalLink, Trash2 } from "lucide-react";
+import { Rocket, ArrowLeft, LogOut, ExternalLink } from "lucide-react";
 import { signOut } from "@/actions/auth";
 
 interface BusinessPageProps {
@@ -12,10 +12,7 @@ interface BusinessPageProps {
 }
 
 async function getBusiness(id: string, userId: string) {
-  const business = await prisma.business.findFirst({
-    where: { id, userId },
-    include: { site: true },
-  });
+  const business = await businessRepository.findByIdWithSite(id, userId);
   return business;
 }
 

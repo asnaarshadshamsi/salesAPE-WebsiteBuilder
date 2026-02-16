@@ -634,3 +634,228 @@ export async function testCohereConnection(): Promise<boolean> {
   const result = await cohereGenerate('Say "Hello" in one word.', { maxTokens: 10 });
   return result !== null;
 }
+
+// ==================== VOICE INPUT PARSING ====================
+
+export interface ExtractedBusinessInfo {
+  businessName: string;
+  description: string;
+  businessType: string;
+  services: string[];
+  features: string[];
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  city: string | null;
+  targetAudience: string | null;
+  uniqueSellingPoints: string[];
+  primaryColor: string;
+  secondaryColor: string;
+}
+
+/**
+ * Parse voice input and extract structured business information using AI
+ */
+export async function parseVoiceInputToBusinessInfo(
+  voiceTranscript: string
+): Promise<ExtractedBusinessInfo> {
+  const prompt = `You are an AI assistant that extracts structured business information from natural language descriptions.
+
+The user described their business:
+"${voiceTranscript}"
+
+Extract and structure the following information. If something is not mentioned, make intelligent assumptions based on the business type and context.
+
+Respond in EXACTLY this format:
+BUSINESS_NAME: [extracted or suggested business name]
+BUSINESS_TYPE: [one of: ecommerce, restaurant, service, healthcare, fitness, beauty, realestate, agency, portfolio, education, startup, other]
+DESCRIPTION: [brief 1-2 sentence description]
+SERVICES: [comma-separated list of 3-6 services/products]
+FEATURES: [comma-separated list of 3-5 key features or benefits]
+TARGET_AUDIENCE: [who is their ideal customer]
+UNIQUE_SELLING_POINTS: [comma-separated list of 2-4 unique value propositions]
+PHONE: [phone number if mentioned, or "null"]
+EMAIL: [email if mentioned, or "null"]
+ADDRESS: [physical address if mentioned, or "null"]
+CITY: [city/location if mentioned, or "null"]
+PRIMARY_COLOR: [hex color code that matches the business type]
+SECONDARY_COLOR: [hex color code that complements primary]
+
+Important:
+- Be intelligent about extracting implied information
+- For colors, choose professional palettes that match the business type:
+  * Restaurant: warm oranges/reds (#f97316, #fb923c)
+  * Healthcare: calm blues (#0ea5e9, #38bdf8)
+  * Fitness: energetic greens/oranges (#10b981, #22c55e)
+  * Beauty: elegant pinks/purples (#ec4899, #f472b6)
+  * Real Estate: professional blues (#3b82f6, #60a5fa)
+  * Agency: modern purples (#8b5cf6, #a78bfa)
+  * E-commerce: vibrant blues/purples (#6366f1, #818cf8)
+  * Service: trustworthy blues (#3b82f6, #60a5fa)
+- Services should be specific to what they offer
+- Features should focus on customer benefits
+
+--END--`;
+
+  let result: string | null = null;
+  
+  // Try Cohere first
+  if (COHERE_API_KEY) {
+    result = await cohereGenerate(prompt, { maxTokens: 500, temperature: 0.6 });
+  }
+  
+  // Fallback to structured parsing if Cohere fails or is not configured
+  if (!result) {
+    return parseVoiceInputFallback(voiceTranscript);
+  }
+
+  // Parse the structured response
+  const extracted: Partial<ExtractedBusinessInfo> = {};
+  
+  const extractField = (fieldName: string): string | null => {
+    const regex = new RegExp(`${fieldName}:\\s*(.+?)(?=\\n[A-Z_]+:|--END--|$)`, 'i');
+    const match = result!.match(regex);
+    const value = match?.[1]?.trim();
+    return value && value !== 'null' && value.length > 0 ? value : null;
+  };
+
+  extracted.businessName = extractField('BUSINESS_NAME') || 'My Business';
+  extracted.businessType = (extractField('BUSINESS_TYPE') || 'service').toLowerCase();
+  extracted.description = extractField('DESCRIPTION') || 'A great business serving our community';
+  extracted.services = extractField('SERVICES')?.split(',').map(s => s.trim()).filter(Boolean) || ['General Services'];
+  extracted.features = extractField('FEATURES')?.split(',').map(s => s.trim()).filter(Boolean) || ['Quality Service', 'Expert Team'];
+  extracted.targetAudience = extractField('TARGET_AUDIENCE');
+  extracted.uniqueSellingPoints = extractField('UNIQUE_SELLING_POINTS')?.split(',').map(s => s.trim()).filter(Boolean) || [];
+  extracted.phone = extractField('PHONE');
+  extracted.email = extractField('EMAIL');
+  extracted.address = extractField('ADDRESS');
+  extracted.city = extractField('CITY');
+  extracted.primaryColor = extractField('PRIMARY_COLOR') || '#6366f1';
+  extracted.secondaryColor = extractField('SECONDARY_COLOR') || '#818cf8';
+
+  // Validate hex colors
+  if (!/^#[0-9A-F]{6}$/i.test(extracted.primaryColor)) {
+    extracted.primaryColor = '#6366f1';
+  }
+  if (!/^#[0-9A-F]{6}$/i.test(extracted.secondaryColor)) {
+    extracted.secondaryColor = '#818cf8';
+  }
+
+  return extracted as ExtractedBusinessInfo;
+}
+
+/**
+ * Fallback parser when AI is not available
+ */
+function parseVoiceInputFallback(transcript: string): ExtractedBusinessInfo {
+  const lowerText = transcript.toLowerCase();
+  
+  // Try to extract business name (look for "I'm" or "called" or "named")
+  let businessName = 'My Business';
+  const namePatterns = [
+    /(?:called|named|i'm|i am)\s+([A-Z][A-Za-z\s]{2,30})/i,
+    /^([A-Z][A-Za-z\s]{2,30})\s+(?:is|offers|provides)/i,
+  ];
+  for (const pattern of namePatterns) {
+    const match = transcript.match(pattern);
+    if (match) {
+      businessName = match[1].trim();
+      break;
+    }
+  }
+
+  // Detect business type based on keywords
+  let businessType = 'service';
+  const typeKeywords: Record<string, string[]> = {
+    restaurant: ['restaurant', 'cafe', 'food', 'dining', 'eat', 'menu', 'chef', 'cook'],
+    ecommerce: ['shop', 'store', 'sell', 'products', 'retail', 'ecommerce', 'online store'],
+    healthcare: ['health', 'medical', 'doctor', 'clinic', 'patient', 'treatment', 'therapy'],
+    fitness: ['gym', 'fitness', 'workout', 'training', 'exercise', 'yoga', 'pilates'],
+    beauty: ['beauty', 'salon', 'spa', 'hair', 'nails', 'makeup', 'skincare'],
+    realestate: ['real estate', 'property', 'home', 'house', 'realtor', 'broker'],
+    education: ['education', 'school', 'teach', 'learn', 'course', 'training', 'tutor'],
+    agency: ['agency', 'marketing', 'design', 'creative', 'branding', 'advertising'],
+    portfolio: ['portfolio', 'freelance', 'photographer', 'artist', 'designer'],
+  };
+
+  for (const [type, keywords] of Object.entries(typeKeywords)) {
+    if (keywords.some(keyword => lowerText.includes(keyword))) {
+      businessType = type;
+      break;
+    }
+  }
+
+  // Extract services (look for "offer", "provide", "specialize in")
+  const services: string[] = [];
+  const servicePatterns = [
+    /(?:offer|provide|specialize in|services include)\s+([^.!?]+)/gi,
+  ];
+  for (const pattern of servicePatterns) {
+    const matches = transcript.matchAll(pattern);
+    for (const match of matches) {
+      const extracted = match[1].split(/,| and /).map(s => s.trim()).filter(s => s.length > 2 && s.length < 50);
+      services.push(...extracted);
+    }
+  }
+
+  // Default services based on business type
+  const defaultServices: Record<string, string[]> = {
+    restaurant: ['Dine-In', 'Takeout', 'Catering', 'Delivery'],
+    ecommerce: ['Online Shopping', 'Fast Shipping', 'Easy Returns', 'Customer Support'],
+    healthcare: ['Consultations', 'Treatment Plans', 'Preventive Care', 'Emergency Services'],
+    fitness: ['Personal Training', 'Group Classes', 'Nutrition Coaching', 'Membership Plans'],
+    beauty: ['Hair Styling', 'Manicure & Pedicure', 'Facials', 'Makeup'],
+    realestate: ['Property Listings', 'Buyer Representation', 'Seller Services', 'Market Analysis'],
+    education: ['Courses', 'Workshops', 'One-on-One Tutoring', 'Certification Programs'],
+    agency: ['Brand Strategy', 'Creative Design', 'Digital Marketing', 'Content Creation'],
+    service: ['Consultation', 'Professional Service', 'Customer Support', 'Custom Solutions'],
+  };
+
+  // Extract contact info
+  const phoneMatch = transcript.match(/\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/);
+  const emailMatch = transcript.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+  
+  // Extract location
+  let city: string | null = null;
+  const locationPatterns = [
+    /(?:in|at|located in|based in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/,
+  ];
+  for (const pattern of locationPatterns) {
+    const match = transcript.match(pattern);
+    if (match) {
+      city = match[1].trim();
+      break;
+    }
+  }
+
+  // Color palettes based on business type
+  const colorPalettes: Record<string, { primary: string; secondary: string }> = {
+    restaurant: { primary: '#f97316', secondary: '#fb923c' },
+    ecommerce: { primary: '#6366f1', secondary: '#818cf8' },
+    healthcare: { primary: '#0ea5e9', secondary: '#38bdf8' },
+    fitness: { primary: '#10b981', secondary: '#22c55e' },
+    beauty: { primary: '#ec4899', secondary: '#f472b6' },
+    realestate: { primary: '#3b82f6', secondary: '#60a5fa' },
+    education: { primary: '#8b5cf6', secondary: '#a78bfa' },
+    agency: { primary: '#8b5cf6', secondary: '#a78bfa' },
+    service: { primary: '#3b82f6', secondary: '#60a5fa' },
+  };
+
+  const colors = colorPalettes[businessType] || colorPalettes.service;
+
+  return {
+    businessName,
+    description: transcript.substring(0, 200),
+    businessType,
+    services: services.length > 0 ? services.slice(0, 6) : (defaultServices[businessType] || defaultServices.service),
+    features: ['Quality Service', 'Expert Team', 'Customer Satisfaction', 'Professional Results'],
+    phone: phoneMatch?.[0] || null,
+    email: emailMatch?.[0] || null,
+    address: null,
+    city,
+    targetAudience: null,
+    uniqueSellingPoints: [],
+    primaryColor: colors.primary,
+    secondaryColor: colors.secondary,
+  };
+}

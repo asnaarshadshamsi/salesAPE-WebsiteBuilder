@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import prisma from "@/lib/prisma";
+import { siteRepository } from "@/db/repositories";
 import { SiteTemplate } from "@/components/SiteTemplate";
 import { WebsiteLaunchCelebration } from "@/components/WebsiteLaunchCelebration";
 import { selectVariant } from "@/lib/ai";
@@ -13,21 +13,7 @@ interface SitePageProps {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getSiteBySlug(slug: string): Promise<any> {
-  const site = await prisma.site.findUnique({
-    where: { slug },
-    include: {
-      business: {
-        include: {
-          products: {
-            orderBy: [
-              { featured: 'desc' },
-              { sortOrder: 'asc' },
-            ],
-          },
-        },
-      },
-    },
-  });
+  const site = await siteRepository.findBySlug(slug);
   return site;
 }
 

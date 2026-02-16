@@ -28,6 +28,7 @@ model Business {
   sourceUrl        String?
   logo             String?
   heroImage        String?
+  galleryImages    String?  // JSON array of image URLs
   primaryColor     String   @default("#6366f1")
   secondaryColor   String   @default("#8b5cf6")
   businessType     String   @default("service") // service, ecommerce, restaurant, portfolio, etc.

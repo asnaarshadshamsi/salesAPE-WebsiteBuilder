@@ -229,7 +229,7 @@ export function VoiceEnabledTextarea({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label className="block text-sm font-medium text-gray-300 mb-1.5">
           {label}
         </label>
       )}
@@ -239,7 +239,7 @@ export function VoiceEnabledTextarea({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+          className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none"
         />
         <div className="absolute bottom-3 right-3">
           <VoiceInput onTranscript={handleVoiceTranscript} />

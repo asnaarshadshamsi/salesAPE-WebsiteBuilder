@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { Rocket, Zap, Users, BarChart3, Globe, Calendar, Sparkles } from "lucide-react";
-import { ConversationalOnboarding } from "@/components/ConversationalOnboarding";
+import { Rocket, Zap, Users, BarChart3, Globe, Calendar, Sparkles, Mic, ArrowRight } from "lucide-react";
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -63,18 +62,52 @@ export default async function HomePage() {
               Powered by APE AI
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-6">
-              Launch Your Business
+              Just Talk About Your Business
               <span className="block bg-linear-to-r from-pink-400 via-pink-500 to-pink-600 bg-clip-text text-transparent">
-                in 60 Seconds
+                We'll Build Your Website
               </span>
             </h1>
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-              Enter your website or Instagram URL and instantly get a branded website, 
-              lead capture form, booking system, and mini CRM. No coding required.
+              Use voice or text to describe your business. Our AI instantly creates a branded website
+              with lead capture, booking, and CRM. Or paste your Instagram/website URL for even faster setup.
             </p>
 
-            {/* Onboarding Form */}
-            <ConversationalOnboarding isLoggedIn={!!user} />
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                href={user ? "/create" : "/signup"}
+                className="group px-8 py-4 bg-linear-to-r from-pink-500 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:shadow-pink-500/25 transition-all flex items-center gap-2"
+              >
+                <Rocket className="w-5 h-5" />
+                {user ? "Create Your Website" : "Get Started Free"}
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
+              {!user && (
+                <Link
+                  href="/login"
+                  className="px-8 py-4 bg-zinc-900 text-white rounded-xl font-bold text-lg hover:bg-zinc-800 transition-all border border-pink-500/20"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+
+            {/* Feature badges */}
+            <div className="flex flex-wrap gap-4 justify-center mt-12 text-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border border-pink-500/10 rounded-full text-gray-300">
+                <Mic className="w-4 h-4 text-pink-400" />
+                Voice & Text Input
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border border-pink-500/10 rounded-full text-gray-300">
+                <Globe className="w-4 h-4 text-pink-400" />
+                URL Scraping
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border border-pink-500/10 rounded-full text-gray-300">
+                <Sparkles className="w-4 h-4 text-pink-400" />
+                AI-Powered
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -92,6 +125,11 @@ export default async function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<Mic className="w-6 h-6" />}
+              title="Voice-First Creation"
+              description="Just talk about your business. Our AI understands and extracts everything needed—name, services, colors, and more."
+            />
             <FeatureCard
               icon={<Globe className="w-6 h-6" />}
               title="Instant Website"
@@ -141,13 +179,13 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             <StepCard
               number="1"
-              title="Enter Your URL"
-              description="Paste your website or Instagram URL. We'll analyze your brand and extract key information."
+              title="Speak or Type"
+              description="Describe your business with voice or text. Or paste your website/Instagram URL for instant extraction."
             />
             <StepCard
               number="2"
-              title="Customize"
-              description="Review and edit your business details, services, and contact information."
+              title="AI Generates Everything"
+              description="Our AI creates your website, extracts services, picks colors, and writes compelling copy."
             />
             <StepCard
               number="3"

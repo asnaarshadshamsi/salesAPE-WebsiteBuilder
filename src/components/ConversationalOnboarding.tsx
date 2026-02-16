@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { analyzeUrl } from "@/actions/business";
+import { analyzeUrl, analyzeVoiceInput } from "@/actions/business";
 import { Button, Input, Textarea } from "@/components/ui";
+import { VoiceEnabledTextarea } from "@/components/VoiceInput";
 import { 
   ArrowRight, 
   ArrowLeft,
@@ -22,7 +23,8 @@ import {
   Linkedin,
   Globe2,
   Plus,
-  X
+  X, 
+  Mic
 } from "lucide-react";
 
 // ==================== TYPES ====================
@@ -114,6 +116,7 @@ export function ConversationalOnboarding({ isLoggedIn }: ConversationalOnboardin
   const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState("");
+  const [voiceDescription, setVoiceDescription] = useState("");
   
   const [formData, setFormData] = useState<OnboardingData>({
     sourceUrl: "",
@@ -219,8 +222,11 @@ export function ConversationalOnboarding({ isLoggedIn }: ConversationalOnboardin
   // ==================== STEP NAVIGATION ====================
 
   const handleAnalyzeAndNext = async () => {
-    if (!formData.sourceUrl.trim()) {
-      setError("Please enter a URL");
+    const hasUrl = formData.sourceUrl.trim().length > 0;
+    const hasVoice = voiceDescription.trim().length > 0;
+
+    if (!hasUrl && !hasVoice) {
+      setError("Please either enter a URL or describe your business using voice/text");
       return;
     }
 
@@ -228,37 +234,53 @@ export function ConversationalOnboarding({ isLoggedIn }: ConversationalOnboardin
     setIsAnalyzing(true);
 
     try {
-      // Analyze primary URL
-      const result = await analyzeUrl(formData.sourceUrl);
+      let urlData = null;
+      let voiceData = null;
 
-      if (result.success && result.data) {
-        const data = result.data;
+      // Analyze URL if provided
+      if (hasUrl) {
+        const urlResult = await analyzeUrl(formData.sourceUrl);
+        if (urlResult.success && urlResult.data) {
+          urlData = urlResult.data;
+        }
+      }
+
+      // Analyze voice description if provided
+      if (hasVoice) {
+        const voiceResult = await analyzeVoiceInput(voiceDescription);
+        if (voiceResult.success && voiceResult.data) {
+          voiceData = voiceResult.data;
+        }
+      }
+
+      // Merge data: URL takes precedence for images/logos, voice for text content
+      if (urlData || voiceData) {
         setFormData(prev => ({
           ...prev,
-          businessName: data.name || prev.businessName,
-          businessDescription: data.description || prev.businessDescription,
-          logo: data.logo || prev.logo,
-          heroImage: data.heroImage || prev.heroImage,
-          primaryColor: data.primaryColor || prev.primaryColor,
-          secondaryColor: data.secondaryColor || prev.secondaryColor,
-          businessType: data.businessType || prev.businessType,
-          services: data.services || prev.services,
-          features: data.features || prev.features,
-          products: data.products || prev.products,
-          phone: data.phone || prev.phone,
-          email: data.email || prev.email,
-          address: data.address || prev.address,
-          socialLinks: data.socialLinks || prev.socialLinks,
-          testimonials: data.testimonials || prev.testimonials,
+          businessName: voiceData?.name || urlData?.name || prev.businessName,
+          businessDescription: voiceData?.description || urlData?.description || prev.businessDescription,
+          logo: urlData?.logo || prev.logo,
+          heroImage: urlData?.heroImage || prev.heroImage,
+          primaryColor: voiceData?.primaryColor || urlData?.primaryColor || prev.primaryColor,
+          secondaryColor: voiceData?.secondaryColor || urlData?.secondaryColor || prev.secondaryColor,
+          businessType: voiceData?.businessType || urlData?.businessType || prev.businessType,
+          services: voiceData?.services || urlData?.services || prev.services,
+          features: voiceData?.features || urlData?.features || prev.features,
+          products: urlData?.products || prev.products,
+          phone: voiceData?.phone || urlData?.phone || prev.phone,
+          email: voiceData?.email || urlData?.email || prev.email,
+          address: voiceData?.address || urlData?.address || prev.address,
+          socialLinks: urlData?.socialLinks || prev.socialLinks,
+          testimonials: urlData?.testimonials || prev.testimonials,
         }));
         setStep(2);
       } else {
-        setError(result.error || "Failed to analyze URL. You can continue anyway.");
-        // Still allow user to continue
+        setError("Unable to analyze the information provided. You can continue manually.");
         setStep(2);
       }
     } catch (err) {
-      setError("Error analyzing URL. You can continue anyway.");
+      console.error('Analysis error:', err);
+      setError("Error during analysis. You can continue manually.");
       setStep(2);
     } finally {
       setIsAnalyzing(false);
@@ -357,47 +379,81 @@ export function ConversationalOnboarding({ isLoggedIn }: ConversationalOnboardin
     <div className="space-y-6">
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Palette className="w-8 h-8 text-pink-500" />
+          <MessageSquare className="w-8 h-8 text-pink-500" />
         </div>
         <h2 className="text-2xl font-bold text-white">
-          What content and branding do you already have?
+          Tell us about your business
         </h2>
         <p className="text-gray-400 mt-2">
-          Share your Instagram, Facebook, website, or any URL where we can find your business info
+          Use your voice or text to describe your business, or share a URL to get started instantly
         </p>
       </div>
 
+      {/* Voice/Text Description - PRIMARY METHOD */}
+      <div className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 p-6 rounded-2xl border border-pink-500/20">
+        <div className="flex items-center gap-2 mb-3">
+          <Mic className="w-5 h-5 text-pink-400" />
+          <label className="text-sm font-medium text-white">
+            Describe Your Business (Voice or Text)
+          </label>
+          <span className="text-xs text-pink-400 bg-pink-500/20 px-2 py-0.5 rounded">Recommended</span>
+        </div>
+        <VoiceEnabledTextarea
+          value={voiceDescription}
+          onChange={setVoiceDescription}
+          placeholder="Example: I run a bakery called Sweet Dreams in downtown Austin. We specialize in custom wedding cakes, French pastries, and artisan breads. We offer delivery, catering, and custom orders. Our phone is 512-555-1234..."
+          rows={6}
+          className="w-full"
+        />
+        <p className="text-xs text-gray-400 mt-2">
+          💡 Click the microphone button to speak, or just type. The more details you provide, the better!
+        </p>
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 h-px bg-zinc-800"></div>
+        <span className="text-sm text-gray-500">OR</span>
+        <div className="flex-1 h-px bg-zinc-800"></div>
+      </div>
+
+      {/* URL Input - OPTIONAL */}
       <div>
-        <label className="text-sm font-medium text-gray-300 mb-2 block">
-          Primary URL (Instagram, Facebook, Website, etc.)
+        <label className="text-sm font-medium text-gray-300 mb-2 block flex items-center gap-2">
+          <Globe className="w-4 h-4" />
+          Have an existing website or social media? (Optional)
         </label>
         <Input
           placeholder="https://instagram.com/yourbusiness or your website URL"
           value={formData.sourceUrl}
           onChange={(e) => setFormData(prev => ({ ...prev, sourceUrl: e.target.value }))}
         />
+        <p className="text-xs text-gray-500 mt-1.5">
+          We'll extract your logo, images, and other details automatically
+        </p>
       </div>
 
       {/* Additional URLs */}
-      <div>
-        <label className="text-sm font-medium text-gray-300 mb-2 block">
-          Additional Links (optional)
-        </label>
-        <div className="flex gap-2 mb-3">
-          <Input
-            placeholder="Add more links (Facebook, TikTok, Google Business...)"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddUrl())}
-          />
-          <Button variant="outline" onClick={handleAddUrl} className="shrink-0">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        {formData.additionalUrls.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {formData.additionalUrls.map((url) => {
+      {formData.sourceUrl && (
+        <div>
+          <label className="text-sm font-medium text-gray-300 mb-2 block">
+            Additional Links (optional)
+          </label>
+          <div className="flex gap-2 mb-3">
+            <Input
+              placeholder="Add more links (Facebook, TikTok, Google Business...)"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddUrl())}
+            />
+            <Button variant="outline" onClick={handleAddUrl} className="shrink-0">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {formData.additionalUrls.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.additionalUrls.map((url) => {
               const { icon, label } = detectUrlType(url);
               return (
                 <span
@@ -417,27 +473,28 @@ export function ConversationalOnboarding({ isLoggedIn }: ConversationalOnboardin
             })}
           </div>
         )}
-      </div>
 
-      {/* Quick Add Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <span className="text-xs text-gray-500 w-full mb-1">Quick add:</span>
-        {[
-          { icon: <Instagram className="w-4 h-4" />, label: 'Instagram', prefix: 'https://instagram.com/' },
-          { icon: <Facebook className="w-4 h-4" />, label: 'Facebook', prefix: 'https://facebook.com/' },
-          { icon: <Twitter className="w-4 h-4" />, label: 'Twitter/X', prefix: 'https://x.com/' },
-          { icon: <Linkedin className="w-4 h-4" />, label: 'LinkedIn', prefix: 'https://linkedin.com/company/' },
-        ].map(({ icon, label, prefix }) => (
-          <button
-            key={label}
-            onClick={() => setNewUrl(prefix)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-full text-xs text-gray-300 transition-colors"
-          >
-            {icon}
-            {label}
-          </button>
-        ))}
+        {/* Quick Add Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <span className="text-xs text-gray-500 w-full mb-1">Quick add:</span>
+          {[
+            { icon: <Instagram className="w-4 h-4" />, label: 'Instagram', prefix: 'https://instagram.com/' },
+            { icon: <Facebook className="w-4 h-4" />, label: 'Facebook', prefix: 'https://facebook.com/' },
+            { icon: <Twitter className="w-4 h-4" />, label: 'Twitter/X', prefix: 'https://x.com/' },
+            { icon: <Linkedin className="w-4 h-4" />, label: 'LinkedIn', prefix: 'https://linkedin.com/company/' },
+          ].map(({ icon, label, prefix }) => (
+            <button
+              key={label}
+              onClick={() => setNewUrl(prefix)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-full text-xs text-gray-300 transition-colors"
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
+      )}
 
       {error && (
         <p className="text-amber-400 text-sm bg-amber-500/10 p-3 rounded-lg">
