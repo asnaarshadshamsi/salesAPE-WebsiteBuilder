@@ -96,8 +96,8 @@ export class LandingPagePipeline {
         console.log('[Pipeline] Content enriched with AI generation');
       }
 
-      // Step 5: Generate Complete Template Fields
-      const completeLandingPage = templateFieldGeneratorService.generate(enrichedData);
+      // Step 5: Generate Complete Template Fields (LLM if available, else structural)
+      const completeLandingPage = await templateFieldGeneratorService.generateWithLLM(enrichedData);
 
       console.log('[Pipeline] Template fields generated');
 

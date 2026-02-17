@@ -29,6 +29,9 @@ export interface AnalyzeResult {
     testimonials: any[];
     galleryImages: string[];
     sourceUrl: string;
+    // Enhanced data from multi-page scraper
+    aboutContent?: string;
+    confidence?: string;
   };
   error?: string;
 }

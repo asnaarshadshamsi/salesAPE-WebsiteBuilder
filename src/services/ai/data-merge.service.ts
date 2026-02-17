@@ -43,6 +43,9 @@ interface MergedData {
   keyMessages?: string[];
   callToAction?: string;
   confidence: 'high' | 'medium' | 'low';
+  // Enhanced scraper context for LLM
+  rawText?: string;
+  scrapedImages?: Array<{ url: string; alt: string; type: string }>;
 }
 
 export class DataMergeService {
@@ -132,6 +135,10 @@ export class DataMergeService {
 
       // Confidence: calculate based on data quality
       confidence: this.calculateConfidence(scraped, llmData),
+
+      // Enhanced scraper context (pass-through for LLM downstream)
+      rawText: (scraped as any)?.rawText || '',
+      scrapedImages: (scraped as any)?.scrapedImages || [],
     };
 
     return merged;

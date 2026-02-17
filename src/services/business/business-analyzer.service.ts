@@ -1,25 +1,31 @@
-import { scraperService } from '../scraper';
-import { contentGeneratorService } from '../ai';
-import { BusinessType } from '@/types';
-
 /**
- * Business analyzer service - analyzes URLs and extracts business data
+ * Business Analyzer Service
+ * Uses the enhanced multi-page scraper to extract comprehensive business data.
+ * Returns enriched data including:
+ *  - Typed images (logo, hero, gallery, team, product)
+ *  - Multi-page content (about, services, testimonials, pricing, FAQ)
+ *  - Contact info, social links
+ *  - rawText for LLM context
  */
+
+import { enhancedScraperService, type ScrapedImage } from '../scraper/enhanced-scraper.service';
+import { contentGeneratorService } from '../ai';
+
 export class BusinessAnalyzerService {
   /**
-   * Analyze a URL and extract business data
+   * Analyze a URL and extract comprehensive business data
    */
   async analyzeUrl(url: string) {
     if (!url || url.trim().length === 0) {
       throw new Error('Please enter a URL');
     }
 
-    // Scrape the website
-    const scraped = await scraperService.scrapeUrl(url);
-    
-    // Generate enhanced content
+    // Use enhanced multi-page scraper for comprehensive extraction
+    const scraped = await enhancedScraperService.scrapeWebsite(url);
+
+    // Generate AI content to fill in any gaps
     const content = await contentGeneratorService.generateContent({
-      name: scraped.title,
+      name: scraped.name,
       description: scraped.description,
       businessType: scraped.businessType,
       services: scraped.services,
@@ -27,7 +33,7 @@ export class BusinessAnalyzerService {
     });
 
     return {
-      name: scraped.title,
+      name: scraped.name,
       description: scraped.description || content.aboutText,
       logo: scraped.logo,
       heroImage: scraped.heroImage,
@@ -44,6 +50,11 @@ export class BusinessAnalyzerService {
       testimonials: scraped.testimonials,
       galleryImages: scraped.galleryImages,
       sourceUrl: url,
+      // Enhanced data for downstream LLM usage
+      rawText: scraped.rawText,
+      scrapedImages: scraped.scrapedImages,
+      aboutContent: scraped.aboutContent,
+      confidence: scraped.confidence,
     };
   }
 }

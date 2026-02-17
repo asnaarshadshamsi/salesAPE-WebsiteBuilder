@@ -1,13 +1,26 @@
-import { CreateBusinessInput, BusinessWithSite } from '@/types';
+/**
+ * Business Service
+ *
+ * Handles business CRUD operations and website generation.
+ *
+ * Key creation flow:
+ *  1. If sourceUrl → re-scrape with enhanced scraper for rawText + images
+ *  2. Build MergedData from user input + scraped data
+ *  3. Call templateFieldGeneratorService.generateWithLLM() to produce BusinessData
+ *  4. Overlay scraped images (logo → brand, hero → hero, gallery → services)
+ *  5. Store complete BusinessData JSON in site.templateData
+ *  6. Site page renders from that JSON via LandingTemplate
+ */
+
+import { CreateBusinessInput, BusinessWithSite, BusinessType } from '@/types';
 import { businessRepository, siteRepository, productRepository } from '@/db/repositories';
 import { generateUniqueSlug } from '../scraper/base-scraper.service';
 import { contentGeneratorService } from '../ai';
+import { templateFieldGeneratorService, type MergedData } from '../ai/template-field-generator.service';
+import { enhancedScraperService, type EnhancedScrapedData } from '../scraper/enhanced-scraper.service';
 import { prisma } from '@/db/client';
 import type { BusinessData } from '@/components/template/types/landing';
 
-/**
- * Business service - handles all business-related operations
- */
 export class BusinessService {
   /**
    * Get all businesses for a user
@@ -24,24 +37,47 @@ export class BusinessService {
   }
 
   /**
-   * Create a new business with site and products
+   * Create a new business with site and products.
+   *
+   * This is the end-to-end pipeline:
+   *  sourceUrl → enhanced scraper → LLM → BusinessData → DB → rendered page
    */
   async createBusiness(userId: string, userEmail: string, input: CreateBusinessInput) {
-    // Generate content using AI
+    // ---------------------------------------------------------------
+    // Step 1: If URL provided, scrape site for full context
+    // ---------------------------------------------------------------
+    let scrapedData: EnhancedScrapedData | null = null;
+    if (input.sourceUrl) {
+      try {
+        console.log('[BusinessService] Scraping source URL for LLM context…');
+        scrapedData = await enhancedScraperService.scrapeWebsite(input.sourceUrl);
+        console.log(`[BusinessService] Scrape done — confidence: ${scrapedData.confidence}, images: ${scrapedData.scrapedImages.length}`);
+      } catch (err) {
+        console.error('[BusinessService] Scraping failed, continuing without:', err);
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // Step 2: Generate baseline AI content (template fallback)
+    // ---------------------------------------------------------------
     const content = await contentGeneratorService.generateContent({
       name: input.name,
       description: input.description,
-      businessType: input.businessType as any,
+      businessType: input.businessType as BusinessType,
       services: input.services,
       features: input.features,
     });
 
-    // Build the complete BusinessData for the new LandingTemplate
-    const templateData = this.buildTemplateData(input, content);
+    // ---------------------------------------------------------------
+    // Step 3: Build complete BusinessData via LLM + scraped data
+    // ---------------------------------------------------------------
+    const templateData = await this.buildTemplateData(input, content, scrapedData);
+    console.log('[BusinessService] BusinessData generated. Sections:', Object.keys(templateData).filter(k => !!(templateData as any)[k]).join(', '));
 
-    // Use a transaction to create business, site, and products atomically
+    // ---------------------------------------------------------------
+    // Step 4: Persist everything in a transaction
+    // ---------------------------------------------------------------
     const result = await prisma.$transaction(async (tx: any) => {
-      // Create business
       const business = await tx.business.create({
         data: {
           userId,
@@ -66,10 +102,8 @@ export class BusinessService {
         },
       });
 
-      // Generate unique slug
       const slug = generateUniqueSlug(input.name);
 
-      // Create site with templateData
       const site = await tx.site.create({
         data: {
           businessId: business.id,
@@ -118,130 +152,71 @@ export class BusinessService {
     };
   }
 
-  /**
-   * Build the complete BusinessData object for the LandingTemplate
-   */
-  private buildTemplateData(
+  // ==================================================================
+  //  Build BusinessData — attempts LLM, falls back to structural
+  // ==================================================================
+
+  private async buildTemplateData(
     input: CreateBusinessInput,
-    content: any
-  ): BusinessData {
-    const services = input.services && input.services.length > 0
-      ? input.services
-      : content.services || [];
-    const features = input.features && input.features.length > 0
-      ? input.features
-      : content.features || [];
+    content: any,
+    scrapedData: EnhancedScrapedData | null
+  ): Promise<BusinessData> {
+    const services =
+      input.services && input.services.length > 0
+        ? input.services
+        : content.services || [];
+    const features =
+      input.features && input.features.length > 0
+        ? input.features
+        : content.features || [];
 
-    // Build nav links based on available sections
-    const navLinks: { label: string; href: string }[] = [];
-    if (content.aboutText || input.description) navLinks.push({ label: 'About', href: '#about' });
-    if (features.length > 0) navLinks.push({ label: 'Features', href: '#features' });
-    if (services.length > 0) navLinks.push({ label: 'Services', href: '#services' });
-    if (input.testimonials && input.testimonials.length > 0) navLinks.push({ label: 'Testimonials', href: '#testimonials' });
-    navLinks.push({ label: 'Contact', href: '#contact' });
-
-    // Build feature items with icons
-    const icons = ['✦', '◈', '▲', '●', '◆', '■'];
-    const featureItems = features.map((f: string, i: number) => ({
-      icon: icons[i % icons.length],
-      title: f,
-      description: content.valuePropositions?.[i] || '',
-    }));
-
-    // Build service items with descriptions
-    const serviceItems = services.map((s: string, i: number) => {
-      const desc = Array.isArray(content.serviceDescriptions)
-        ? (typeof content.serviceDescriptions[i] === 'string'
-            ? content.serviceDescriptions[i]
-            : content.serviceDescriptions[i]?.description || '')
-        : '';
-      return { title: s, description: desc };
-    });
-
-    // Build testimonial items
-    const testimonialItems = (input.testimonials || []).map((t) => ({
-      quote: t.text,
-      author: t.name,
-      role: undefined as string | undefined,
-    }));
-
-    // Build social links for footer
-    const socials = input.socialLinks
-      ? Object.entries(input.socialLinks)
-          .filter(([, href]) => !!href)
-          .map(([platform, href]) => ({ platform, href: href as string }))
-      : undefined;
-
-    const sectionTitles = content.sectionTitles || {};
-
-    const data: BusinessData = {
-      brand: {
-        name: input.name,
-        logo: input.logo || undefined,
-        tagline: content.tagline || input.description || undefined,
-      },
-      hero: {
-        headline: content.headline,
-        subheadline: content.subheadline || undefined,
-        cta: { label: content.ctaText, href: '#contact' },
-        secondaryCta: { label: 'Learn More', href: '#about' },
-        image: input.heroImage || undefined,
-      },
-      nav: { links: navLinks },
-      about: (content.aboutText || input.description)
-        ? {
-            title: sectionTitles.about || 'About Us',
-            description: content.aboutText || input.description,
-          }
-        : undefined,
-      features: featureItems.length > 0
-        ? {
-            title: sectionTitles.services || 'What Sets Us Apart',
-            items: featureItems,
-          }
-        : undefined,
-      services: serviceItems.length > 0
-        ? {
-            title: sectionTitles.products || 'Our Services',
-            items: serviceItems,
-          }
-        : undefined,
-      testimonials: testimonialItems.length > 0
-        ? {
-            title: sectionTitles.testimonials || 'What Our Clients Say',
-            items: testimonialItems,
-          }
-        : undefined,
-      cta: {
-        title: sectionTitles.contact || 'Ready to get started?',
-        description: `Get in touch with ${input.name} today.`,
-        buttonLabel: content.ctaText,
-        buttonHref: '#contact',
-      },
-      footer: {
-        description: input.description || undefined,
-        links: navLinks,
-        socials: socials && socials.length > 0 ? socials : undefined,
-        copyright: `© ${new Date().getFullYear()} ${input.name}. All rights reserved.`,
-      },
+    // Build MergedData for the template field generator
+    const merged: MergedData = {
+      name: input.name,
+      description: input.description || content.aboutText || '',
+      logo: input.logo,
+      heroImage: input.heroImage,
+      galleryImages: input.galleryImages || scrapedData?.galleryImages || [],
+      primaryColor: input.primaryColor,
+      secondaryColor: input.secondaryColor,
+      businessType: input.businessType as BusinessType,
+      services,
+      features,
+      products: input.products || [],
+      phone: input.phone,
+      email: input.email,
+      address: input.address,
+      city: input.city,
+      socialLinks: input.socialLinks || scrapedData?.socialLinks || {},
+      testimonials: input.testimonials || scrapedData?.testimonials || [],
+      aboutContent: scrapedData?.aboutContent || content.aboutText || input.description || '',
+      confidence: scrapedData?.confidence || ('low' as const),
+      // LLM context from scraper
+      rawText: scrapedData?.rawText || '',
+      scrapedImages: scrapedData?.scrapedImages || [],
+      // Extra hints
+      uniqueSellingPoints: content.valuePropositions || [],
+      keyMessages: content.headline ? [content.headline] : [],
+      callToAction: content.ctaText,
+      targetAudience: undefined,
+      tone: undefined,
     };
 
-    return data;
+    // Use LLM-powered generation (falls back to structural assembly internally)
+    return await templateFieldGeneratorService.generateWithLLM(merged);
   }
 
-  /**
-   * Update business
-   */
+  // ==================================================================
+  //  Update / Delete
+  // ==================================================================
+
   async updateBusiness(
     businessId: string,
     userId: string,
     input: Partial<CreateBusinessInput>
   ): Promise<void> {
-    // Verify ownership
     const business = await businessRepository.findByIdAndUser(businessId, userId);
-    if (!business) {
-      throw new Error('Business not found');
-    }
+    if (!business) throw new Error('Business not found');
 
     await businessRepository.update(businessId, {
       name: input.name,
@@ -258,16 +233,9 @@ export class BusinessService {
     } as any);
   }
 
-  /**
-   * Delete business
-   */
   async deleteBusiness(businessId: string, userId: string): Promise<void> {
-    // Verify ownership
     const business = await businessRepository.findByIdAndUser(businessId, userId);
-    if (!business) {
-      throw new Error('Business not found');
-    }
-
+    if (!business) throw new Error('Business not found');
     await businessRepository.delete(businessId);
   }
 }

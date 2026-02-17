@@ -21,7 +21,7 @@ export {
 export { adaptToTemplateFormat } from './template-adapter.service';
 
 // Individual services (if needed for advanced usage)
-export { enhancedScraperService, EnhancedScraperService } from '../scraper/enhanced-scraper.service';
+export { enhancedScraperService, EnhancedScraperService, type ScrapedImage, type EnhancedScrapedData } from '../scraper/enhanced-scraper.service';
 export { llmExtractionService, LLMExtractionService } from '../ai/llm-extraction.service';
 export { dataMergeService, DataMergeService } from '../ai/data-merge.service';
 export { templateFieldGeneratorService, TemplateFieldGeneratorService } from '../ai/template-field-generator.service';
