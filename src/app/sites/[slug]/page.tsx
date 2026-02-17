@@ -71,6 +71,7 @@ export default async function SitePage({ params }: SitePageProps) {
   const testimonials: { name: string; text: string; rating?: number }[] = site.testimonials ? JSON.parse(site.testimonials as string) : [];
   const socialLinks = business.socialLinks ? JSON.parse(business.socialLinks as string) : null;
   const openingHours = business.openingHours ? JSON.parse(business.openingHours as string) : null;
+  const galleryImages: string[] = business.galleryImages ? JSON.parse(business.galleryImages as string) : [];
   
   // Parse AI-enhanced content if available
   const valuePropositions: string[] = site.valuePropositions ? JSON.parse(site.valuePropositions as string) : [];
@@ -142,6 +143,7 @@ export default async function SitePage({ params }: SitePageProps) {
           description: business.description || null,
           logo: business.logo,
           heroImage: business.heroImage,
+          galleryImages,
           primaryColor: business.primaryColor,
           secondaryColor: business.secondaryColor,
           businessType: business.businessType,

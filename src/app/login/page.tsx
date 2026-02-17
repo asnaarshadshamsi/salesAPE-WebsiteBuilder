@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "@/actions/auth";
 import { Button, Input } from "@/components/ui";
 import { Rocket, ArrowRight } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const continueOnboarding = searchParams.get("continue") === "true";
@@ -90,8 +90,8 @@ export default function LoginPage() {
               <p className="text-red-400 text-sm">{error}</p>
             )}
 
-            <Button type="submit" className="w-full" isLoading={isLoading}>
-              Sign In
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign In"}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </form>
@@ -108,5 +108,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-pink-400">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

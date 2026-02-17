@@ -354,9 +354,9 @@ export function FitnessTemplate({
                 <Button
                   type="submit"
                   className="w-full bg-orange-500 hover:bg-orange-600"
-                  isLoading={formState === "loading"}
+                  disabled={formState === "loading"}
                 >
-                  {formState === "success" ? "Request Sent!" : "GET STARTED"}
+                  {formState === "success" ? "Request Sent!" : formState === "loading" ? "Sending..." : "GET STARTED"}
                   <Send className="w-4 h-4 ml-2" />
                 </Button>
               </form>

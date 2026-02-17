@@ -269,13 +269,31 @@ export function BusinessEditForm({ business, siteSlug }: BusinessEditFormProps) 
         {success && <p className="text-emerald-400 text-sm">Changes saved successfully!</p>}
 
         <div className="flex justify-between pt-4 border-t border-zinc-800">
-          <Button type="button" variant="danger" onClick={handleDelete} isLoading={isDeleting}>
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete Business
+          <Button type="button" variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Business
+              </>
+            )}
           </Button>
-          <Button type="submit" isLoading={isLoading}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </>
+            )}
           </Button>
         </div>
       </form>

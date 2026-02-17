@@ -364,10 +364,10 @@ export function RestaurantTemplate({
                 <Button
                   type="submit"
                   className="w-full"
-                  isLoading={formState === "loading"}
+                  disabled={formState === "loading"}
                   style={{ backgroundColor: "#f59e0b" }}
                 >
-                  {formState === "success" ? "Message Sent!" : "Send Message"}
+                  {formState === "success" ? "Message Sent!" : formState === "loading" ? "Sending..." : "Send Message"}
                   <Send className="w-4 h-4 ml-2" />
                 </Button>
               </form>

@@ -28,6 +28,13 @@ export async function middleware(request: NextRequest) {
   // Check if token is actually valid
   const hasValidToken = token ? await isValidToken(token) : false;
 
+  // If token exists but is invalid, clear it immediately
+  if (token && !hasValidToken) {
+    const response = NextResponse.next();
+    response.cookies.delete("auth-token");
+    return response;
+  }
+
   // Check if the path requires authentication
   const isProtectedPath = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
@@ -40,12 +47,7 @@ export async function middleware(request: NextRequest) {
   if (isProtectedPath && !hasValidToken) {
     const url = new URL("/login", request.url);
     url.searchParams.set("redirect", pathname);
-    const response = NextResponse.redirect(url);
-    // Clear invalid token cookie if it exists
-    if (token) {
-      response.cookies.delete("auth-token");
-    }
-    return response;
+    return NextResponse.redirect(url);
   }
 
   // Redirect to dashboard if accessing auth pages while logged in with valid token

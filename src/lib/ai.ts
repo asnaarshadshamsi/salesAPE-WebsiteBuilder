@@ -2,7 +2,7 @@
 // Generates tailored content based on business type detected from scraping
 // Now with Cohere AI integration for enhanced content generation
 
-import type { ScrapedData, ProductData } from './scraper';
+import type { ScrapedData, ProductData } from '@/types/scraper';
 import { 
   generateBusinessContent as cohereGenerateContent, 
   isCohereConfigured,
@@ -423,6 +423,43 @@ const templates: Record<BusinessType, {
       contact: "Contact Us",
       testimonials: "Student Success Stories",
       gallery: "Campus Life",
+    },
+  },
+
+  startup: {
+    headlines: [
+      "Welcome to {name} - Innovation Starts Here",
+      "{name} - Building the Future",
+      "Transform Your World with {name}",
+      "{name} - The Next Big Thing",
+      "Experience Innovation at {name}",
+    ],
+    alternateHeadlines: [
+      "Join the Revolution",
+      "Innovation Made Simple",
+      "The Future is Now",
+      "Built for Tomorrow",
+    ],
+    subheadlines: [
+      "Cutting-edge solutions for modern challenges",
+      "Join thousands embracing the future",
+      "Innovation that makes a difference",
+      "Where ideas become reality",
+    ],
+    aboutTemplates: [
+      `{name} is revolutionizing the industry with innovative solutions. Our team is passionate about building products that solve real problems and make a positive impact. Join us on our journey to shape the future.`,
+      `At {name}, we're not just building products - we're creating experiences. Our mission is to empower individuals and businesses with technology that truly matters. Let's build the future together.`,
+    ],
+    ctaOptions: ["Get Started", "Learn More", "Join Waitlist", "Try It Free", "Request Demo"],
+    defaultServices: ["Innovative Solutions", "Expert Support", "Seamless Integration", "Regular Updates"],
+    defaultFeatures: ["Cutting Edge", "User Friendly", "Secure & Reliable", "Scalable"],
+    sectionTitles: {
+      services: "What We Do",
+      products: "Our Solutions",
+      about: "Our Story",
+      contact: "Get in Touch",
+      testimonials: "User Reviews",
+      gallery: "In Action",
     },
   },
 

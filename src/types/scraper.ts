@@ -2,6 +2,8 @@ import { ProductData } from './product';
 import { SocialLinks, Testimonial } from './social';
 import { BusinessType } from './business';
 
+export type { ProductData } from './product';
+
 export type SourceType = 
   | 'website' 
   | 'instagram' 

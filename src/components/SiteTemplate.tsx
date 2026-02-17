@@ -72,6 +72,7 @@ interface SiteTemplateProps {
     description: string | null;
     logo: string | null;
     heroImage: string | null;
+    galleryImages: string[];
     primaryColor: string;
     secondaryColor: string;
     businessType: string;

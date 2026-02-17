@@ -366,10 +366,10 @@ export function HealthcareTemplate({
                 <Button
                   type="submit"
                   className="w-full"
-                  isLoading={formState === "loading"}
+                  disabled={formState === "loading"}
                   style={{ backgroundColor: "#0d9488" }}
                 >
-                  {formState === "success" ? "Request Sent!" : "Request Appointment"}
+                  {formState === "success" ? "Request Sent!" : formState === "loading" ? "Sending..." : "Request Appointment"}
                   <Send className="w-4 h-4 ml-2" />
                 </Button>
               </form>

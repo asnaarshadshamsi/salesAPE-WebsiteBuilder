@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { getMeetingsForUser, Meeting } from "@/actions/meetings";
+import { getUserMeetings, Meeting } from "@/actions/meetings";
 import { signOut } from "@/actions/auth";
 import { formatRelativeTime } from "@/lib/utils";
 import {
@@ -60,7 +60,7 @@ export default async function MeetingsPage() {
     redirect("/login");
   }
 
-  const meetings = await getMeetingsForUser();
+  const meetings = await getUserMeetings();
   
   // Separate upcoming and past meetings
   const now = new Date();
