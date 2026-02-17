@@ -667,7 +667,7 @@ The user described their business:
 Extract and structure the following information. If something is not mentioned, make intelligent assumptions based on the business type and context.
 
 Respond in EXACTLY this format:
-BUSINESS_NAME: [extracted or suggested business name]
+BUSINESS_NAME: [extracted or suggested business name - look for phrases like "business name is" or "called". STOP at words like "the", "theme", "color", "and". Extract ONLY the actual business name, not surrounding context]
 BUSINESS_TYPE: [one of: ecommerce, restaurant, service, healthcare, fitness, beauty, realestate, agency, portfolio, education, startup, other]
 DESCRIPTION: [brief 1-2 sentence description]
 SERVICES: [comma-separated list of 3-6 services/products]
@@ -678,22 +678,15 @@ PHONE: [phone number if mentioned, or "null"]
 EMAIL: [email if mentioned, or "null"]
 ADDRESS: [physical address if mentioned, or "null"]
 CITY: [city/location if mentioned, or "null"]
-PRIMARY_COLOR: [hex color code that matches the business type]
-SECONDARY_COLOR: [hex color code that complements primary]
+PRIMARY_COLOR: [hex color code - PRIORITIZE user-mentioned colors over defaults. Convert color names: white=#ffffff, black=#000000, red=#ef4444, blue=#3b82f6, green=#22c55e, light green=#90ee90, yellow=#eab308, orange=#f97316, purple=#a855f7, pink=#ec4899, gray=#6b7280]
+SECONDARY_COLOR: [hex color code - PRIORITIZE user-mentioned colors over defaults. Same color conversion rules]
 
-Important:
-- Be intelligent about extracting implied information
-- For colors, choose professional palettes that match the business type:
-  * Restaurant: warm oranges/reds (#f97316, #fb923c)
-  * Healthcare: calm blues (#0ea5e9, #38bdf8)
-  * Fitness: energetic greens/oranges (#10b981, #22c55e)
-  * Beauty: elegant pinks/purples (#ec4899, #f472b6)
-  * Real Estate: professional blues (#3b82f6, #60a5fa)
-  * Agency: modern purples (#8b5cf6, #a78bfa)
-  * E-commerce: vibrant blues/purples (#6366f1, #818cf8)
-  * Service: trustworthy blues (#3b82f6, #60a5fa)
-- Services should be specific to what they offer
-- Features should focus on customer benefits
+CRITICAL RULES:
+- If user mentions colors explicitly (e.g., "primary color white", "theme should be blue"), YOU MUST use those colors, not business-type defaults
+- Business name: look for "name is", "called", "business is", or capitalized proper nouns
+- Business type detection: "workshop" or "detailing" = service, "car" or "auto" = service
+- If user specifies ANY colors, return those colors converted to hex, NOT the business type defaults
+- For colors, ONLY use business-type defaults if NO colors are mentioned at all
 
 --END--`;
 
@@ -750,16 +743,21 @@ Important:
 function parseVoiceInputFallback(transcript: string): ExtractedBusinessInfo {
   const lowerText = transcript.toLowerCase();
   
-  // Try to extract business name (look for "I'm" or "called" or "named")
+  // Try to extract business name (look for "I'm" or "called" or "named" or "name is")
   let businessName = 'My Business';
   const namePatterns = [
-    /(?:called|named|i'm|i am)\s+([A-Z][A-Za-z\s]{2,30})/i,
-    /^([A-Z][A-Za-z\s]{2,30})\s+(?:is|offers|provides)/i,
+    /(?:business\s+name\s+is|called|named)\s+([A-Za-z][A-Za-z\s]{1,25}?)(?=\s+(?:the|and|with|in|at|on|theme|color|colour|primary|secondary|business|type|offers|provides|specializes?|located|based|website|www|http)|\.|,|$)/i,
+    /(?:i'm|i am)\s+([A-Z][A-Za-z\s]{1,25}?)(?=\s+(?:the|and|with|in|at|on|theme|color|colour|primary|secondary|business|type|offers|provides|specializes?|located|based)|\.|,|$)/i,
+    /(?:name\s+is|it's\s+called)\s+([A-Za-z][A-Za-z\s]{1,25}?)(?=\s+(?:the|and|with|in|at|on|theme|color|colour|primary|secondary|business|type|offers|provides)|\.|,|$)/i,
   ];
   for (const pattern of namePatterns) {
     const match = transcript.match(pattern);
     if (match) {
       businessName = match[1].trim();
+      // Capitalize first letter of each word
+      businessName = businessName.split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' ');
       break;
     }
   }
@@ -776,6 +774,7 @@ function parseVoiceInputFallback(transcript: string): ExtractedBusinessInfo {
     education: ['education', 'school', 'teach', 'learn', 'course', 'training', 'tutor'],
     agency: ['agency', 'marketing', 'design', 'creative', 'branding', 'advertising'],
     portfolio: ['portfolio', 'freelance', 'photographer', 'artist', 'designer'],
+    service: ['workshop', 'detailing', 'car', 'auto', 'automobile', 'repair', 'maintenance', 'service'],
   };
 
   for (const [type, keywords] of Object.entries(typeKeywords)) {
@@ -808,7 +807,7 @@ function parseVoiceInputFallback(transcript: string): ExtractedBusinessInfo {
     realestate: ['Property Listings', 'Buyer Representation', 'Seller Services', 'Market Analysis'],
     education: ['Courses', 'Workshops', 'One-on-One Tutoring', 'Certification Programs'],
     agency: ['Brand Strategy', 'Creative Design', 'Digital Marketing', 'Content Creation'],
-    service: ['Consultation', 'Professional Service', 'Customer Support', 'Custom Solutions'],
+    service: ['Professional Service', 'Expert Consultation', 'Quality Workmanship', 'Customer Support'],
   };
 
   // Extract contact info
@@ -828,7 +827,45 @@ function parseVoiceInputFallback(transcript: string): ExtractedBusinessInfo {
     }
   }
 
-  // Color palettes based on business type
+  // Extract colors from text (user-specified colors take priority)
+  const colorNameToHex: Record<string, string> = {
+    'white': '#ffffff',
+    'black': '#000000',
+    'red': '#ef4444',
+    'blue': '#3b82f6',
+    'green': '#22c55e',
+    'light green': '#90ee90',
+    'dark green': '#166534',
+    'yellow': '#eab308',
+    'orange': '#f97316',
+    'purple': '#a855f7',
+    'pink': '#ec4899',
+    'gray': '#6b7280',
+    'grey': '#6b7280',
+    'brown': '#92400e',
+    'light blue': '#38bdf8',
+    'dark blue': '#1e3a8a',
+    'navy': '#1e3a8a',
+  };
+
+  let extractedPrimaryColor: string | null = null;
+  let extractedSecondaryColor: string | null = null;
+
+  // Look for color mentions
+  const primaryColorMatch = transcript.match(/(?:primary\s+(?:color|colour))\s+(?:is\s+|should\s+be\s+)?([a-z\s]+?)(?:\s+and|\s+secondary|$|\.)/i);
+  const secondaryColorMatch = transcript.match(/(?:secondary\s+(?:color|colour))\s+(?:is\s+|should\s+be\s+)?([a-z\s]+?)(?:\s+and|$|\.)/i);
+
+  if (primaryColorMatch) {
+    const colorName = primaryColorMatch[1].trim().toLowerCase();
+    extractedPrimaryColor = colorNameToHex[colorName] || null;
+  }
+
+  if (secondaryColorMatch) {
+    const colorName = secondaryColorMatch[1].trim().toLowerCase();
+    extractedSecondaryColor = colorNameToHex[colorName] || null;
+  }
+
+  // Color palettes based on business type (only used if no colors extracted from text)
   const colorPalettes: Record<string, { primary: string; secondary: string }> = {
     restaurant: { primary: '#f97316', secondary: '#fb923c' },
     ecommerce: { primary: '#6366f1', secondary: '#818cf8' },
@@ -855,7 +892,7 @@ function parseVoiceInputFallback(transcript: string): ExtractedBusinessInfo {
     city,
     targetAudience: null,
     uniqueSellingPoints: [],
-    primaryColor: colors.primary,
-    secondaryColor: colors.secondary,
+    primaryColor: extractedPrimaryColor || colors.primary,
+    secondaryColor: extractedSecondaryColor || colors.secondary,
   };
 }

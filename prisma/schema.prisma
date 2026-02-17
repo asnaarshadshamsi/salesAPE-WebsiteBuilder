@@ -96,6 +96,7 @@ model Site {
   valuePropositions   String?  // JSON array of value propositions
   serviceDescriptions String?  // JSON array of {name, description}
   socialMediaBio      String?
+  templateData        String?  // JSON: Complete BusinessData for LandingTemplate
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

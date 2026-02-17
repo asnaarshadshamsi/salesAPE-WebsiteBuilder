@@ -3,6 +3,7 @@ import { businessRepository, siteRepository, productRepository } from '@/db/repo
 import { generateUniqueSlug } from '../scraper/base-scraper.service';
 import { contentGeneratorService } from '../ai';
 import { prisma } from '@/db/client';
+import type { BusinessData } from '@/components/template/types/landing';
 
 /**
  * Business service - handles all business-related operations
@@ -35,6 +36,9 @@ export class BusinessService {
       features: input.features,
     });
 
+    // Build the complete BusinessData for the new LandingTemplate
+    const templateData = this.buildTemplateData(input, content);
+
     // Use a transaction to create business, site, and products atomically
     const result = await prisma.$transaction(async (tx: any) => {
       // Create business
@@ -65,7 +69,7 @@ export class BusinessService {
       // Generate unique slug
       const slug = generateUniqueSlug(input.name);
 
-      // Create site
+      // Create site with templateData
       const site = await tx.site.create({
         data: {
           businessId: business.id,
@@ -81,6 +85,7 @@ export class BusinessService {
           valuePropositions: content.valuePropositions ? JSON.stringify(content.valuePropositions) : null,
           serviceDescriptions: content.serviceDescriptions ? JSON.stringify(content.serviceDescriptions) : null,
           socialMediaBio: content.socialMediaBio,
+          templateData: JSON.stringify(templateData),
         },
       });
 
@@ -111,6 +116,117 @@ export class BusinessService {
       businessId: result.business.id,
       siteSlug: result.site.slug,
     };
+  }
+
+  /**
+   * Build the complete BusinessData object for the LandingTemplate
+   */
+  private buildTemplateData(
+    input: CreateBusinessInput,
+    content: any
+  ): BusinessData {
+    const services = input.services && input.services.length > 0
+      ? input.services
+      : content.services || [];
+    const features = input.features && input.features.length > 0
+      ? input.features
+      : content.features || [];
+
+    // Build nav links based on available sections
+    const navLinks: { label: string; href: string }[] = [];
+    if (content.aboutText || input.description) navLinks.push({ label: 'About', href: '#about' });
+    if (features.length > 0) navLinks.push({ label: 'Features', href: '#features' });
+    if (services.length > 0) navLinks.push({ label: 'Services', href: '#services' });
+    if (input.testimonials && input.testimonials.length > 0) navLinks.push({ label: 'Testimonials', href: '#testimonials' });
+    navLinks.push({ label: 'Contact', href: '#contact' });
+
+    // Build feature items with icons
+    const icons = ['✦', '◈', '▲', '●', '◆', '■'];
+    const featureItems = features.map((f: string, i: number) => ({
+      icon: icons[i % icons.length],
+      title: f,
+      description: content.valuePropositions?.[i] || '',
+    }));
+
+    // Build service items with descriptions
+    const serviceItems = services.map((s: string, i: number) => {
+      const desc = Array.isArray(content.serviceDescriptions)
+        ? (typeof content.serviceDescriptions[i] === 'string'
+            ? content.serviceDescriptions[i]
+            : content.serviceDescriptions[i]?.description || '')
+        : '';
+      return { title: s, description: desc };
+    });
+
+    // Build testimonial items
+    const testimonialItems = (input.testimonials || []).map((t) => ({
+      quote: t.text,
+      author: t.name,
+      role: undefined as string | undefined,
+    }));
+
+    // Build social links for footer
+    const socials = input.socialLinks
+      ? Object.entries(input.socialLinks)
+          .filter(([, href]) => !!href)
+          .map(([platform, href]) => ({ platform, href: href as string }))
+      : undefined;
+
+    const sectionTitles = content.sectionTitles || {};
+
+    const data: BusinessData = {
+      brand: {
+        name: input.name,
+        logo: input.logo || undefined,
+        tagline: content.tagline || input.description || undefined,
+      },
+      hero: {
+        headline: content.headline,
+        subheadline: content.subheadline || undefined,
+        cta: { label: content.ctaText, href: '#contact' },
+        secondaryCta: { label: 'Learn More', href: '#about' },
+        image: input.heroImage || undefined,
+      },
+      nav: { links: navLinks },
+      about: (content.aboutText || input.description)
+        ? {
+            title: sectionTitles.about || 'About Us',
+            description: content.aboutText || input.description,
+          }
+        : undefined,
+      features: featureItems.length > 0
+        ? {
+            title: sectionTitles.services || 'What Sets Us Apart',
+            items: featureItems,
+          }
+        : undefined,
+      services: serviceItems.length > 0
+        ? {
+            title: sectionTitles.products || 'Our Services',
+            items: serviceItems,
+          }
+        : undefined,
+      testimonials: testimonialItems.length > 0
+        ? {
+            title: sectionTitles.testimonials || 'What Our Clients Say',
+            items: testimonialItems,
+          }
+        : undefined,
+      cta: {
+        title: sectionTitles.contact || 'Ready to get started?',
+        description: `Get in touch with ${input.name} today.`,
+        buttonLabel: content.ctaText,
+        buttonHref: '#contact',
+      },
+      footer: {
+        description: input.description || undefined,
+        links: navLinks,
+        socials: socials && socials.length > 0 ? socials : undefined,
+        copyright: `© ${new Date().getFullYear()} ${input.name}. All rights reserved.`,
+      },
+    };
+
+    return data;
   }
 
   /**

@@ -755,7 +755,7 @@ async function scrapeLinkedIn(url: string): Promise<ScrapedData> {
       title: data.name || identifier,
       description: data.description || `LinkedIn profile`,
       logo: data.logo,
-      heroImage: data.coverImage || data.logo,
+      heroImage: data.coverImage || null, // Don't use logo as fallback - let AI generate appropriate content
       primaryColor: '#0A66C2', // LinkedIn blue
       secondaryColor: '#004182',
       businessType: data.isCompany ? 'agency' : 'service',

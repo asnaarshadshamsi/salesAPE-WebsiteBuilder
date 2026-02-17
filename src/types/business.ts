@@ -63,6 +63,7 @@ export interface Site {
   valuePropositions: string | null;
   serviceDescriptions: string | null;
   socialMediaBio: string | null;
+  templateData: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

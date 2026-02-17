@@ -1,24 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createLead } from "@/actions/leads";
-
-// Import all specialized templates
-import {
-  RestaurantTemplate,
-  HealthcareTemplate,
-  FitnessTemplate,
-  BeautyTemplate,
-  RealEstateTemplate,
-  EducationTemplate,
-  AgencyTemplate,
-  PortfolioTemplate,
-  ServiceTemplate,
-  EcommerceTemplate,
-  StartupTemplate,
-} from "@/components/templates";
-
-// No longer need lucide icons here since we removed cart/checkout
+import LandingTemplate from "@/components/template/components/landing/LandingTemplate";
+import type { BusinessData } from "@/components/template/types/landing";
 
 interface Product {
   id: string;
@@ -51,7 +34,7 @@ interface SocialLinks {
   dribbble?: string;
 }
 
-interface SiteTemplateProps {
+export interface SiteTemplateProps {
   site: {
     id: string;
     slug?: string;
@@ -62,7 +45,6 @@ interface SiteTemplateProps {
     features: string[];
     testimonials: Testimonial[];
     variant: "A" | "B";
-    // AI-enhanced content from Cohere
     tagline?: string | null;
     valuePropositions?: string[];
     serviceDescriptions?: ServiceDescription[];
@@ -88,155 +70,117 @@ interface SiteTemplateProps {
   products: Product[];
 }
 
-// Main SiteTemplate component - no cart needed
+/**
+ * Convert props from the DB/page format into the unified BusinessData
+ * shape expected by the new LandingTemplate.
+ */
+function toBusinessData(props: SiteTemplateProps): BusinessData {
+  const { site, business, products } = props;
+
+  // Build nav links
+  const navLinks: { label: string; href: string }[] = [];
+  if (site.aboutText) navLinks.push({ label: "About", href: "#about" });
+  if ((site.serviceDescriptions && site.serviceDescriptions.length > 0) || business.services.length > 0)
+    navLinks.push({ label: "Services", href: "#services" });
+  if (site.features.length > 0) navLinks.push({ label: "Features", href: "#features" });
+  if (site.testimonials.length > 0) navLinks.push({ label: "Testimonials", href: "#testimonials" });
+  navLinks.push({ label: "Contact", href: "#contact" });
+
+  // Build features from site.features + valuePropositions
+  const featureItems = site.features.map((f, i) => ({
+    title: f,
+    description: site.valuePropositions?.[i] || "",
+    icon: ["✦", "◈", "▲", "●", "◆", "■"][i % 6],
+  }));
+
+  // Build services from serviceDescriptions or business.services
+  const serviceItems =
+    site.serviceDescriptions && site.serviceDescriptions.length > 0
+      ? site.serviceDescriptions.map((sd) => ({
+          title: sd.name,
+          description: sd.description,
+        }))
+      : business.services.map((s) => ({
+          title: s,
+          description: "",
+        }));
+
+  // Build testimonials
+  const testimonialItems = site.testimonials.map((t) => ({
+    quote: t.text,
+    author: t.name,
+    role: undefined as string | undefined,
+  }));
+
+  // Build footer links from social links
+  const socials = business.socialLinks
+    ? Object.entries(business.socialLinks)
+        .filter(([, href]) => !!href)
+        .map(([platform, href]) => ({ platform, href: href as string }))
+    : undefined;
+
+  const data: BusinessData = {
+    brand: {
+      name: business.name,
+      logo: business.logo || undefined,
+      tagline: site.tagline || business.description || undefined,
+    },
+    hero: {
+      headline: site.headline,
+      subheadline: site.subheadline || undefined,
+      cta: { label: site.ctaText, href: "#contact" },
+      secondaryCta: { label: "Learn More", href: "#about" },
+      image: business.heroImage || undefined,
+    },
+    nav: {
+      links: navLinks,
+    },
+    about: site.aboutText
+      ? {
+          title: "About Us",
+          description: site.aboutText,
+        }
+      : undefined,
+    features:
+      featureItems.length > 0
+        ? {
+            title: "What Sets Us Apart",
+            items: featureItems,
+          }
+        : undefined,
+    services:
+      serviceItems.length > 0
+        ? {
+            title: "Our Services",
+            items: serviceItems,
+          }
+        : undefined,
+    testimonials:
+      testimonialItems.length > 0
+        ? {
+            title: "What Our Clients Say",
+            items: testimonialItems,
+          }
+        : undefined,
+    cta: {
+      title: "Ready to get started?",
+      description: `Get in touch with ${business.name} today.`,
+      buttonLabel: site.ctaText,
+      buttonHref: "#contact",
+    },
+    footer: {
+      description: business.description || undefined,
+      links: navLinks,
+      socials,
+      copyright: `© ${new Date().getFullYear()} ${business.name}. All rights reserved.`,
+    },
+  };
+
+  return data;
+}
+
+// Main SiteTemplate component
 export function SiteTemplate(props: SiteTemplateProps) {
-  return <SiteTemplateRouter {...props} />;
-}
-
-// Map business types to templates
-function getTemplateForBusinessType(businessType: string) {
-  const type = businessType?.toLowerCase() || 'other';
-  
-  // Restaurant/Food
-  if (['restaurant', 'cafe', 'bakery', 'food', 'catering', 'bar', 'pub', 'bistro', 'pizzeria', 'diner'].some(t => type.includes(t))) {
-    return 'restaurant';
-  }
-  
-  // Healthcare/Medical
-  if (['healthcare', 'medical', 'clinic', 'hospital', 'doctor', 'dentist', 'dental', 'pharmacy', 'health', 'therapy', 'therapist', 'chiropractic', 'wellness'].some(t => type.includes(t))) {
-    return 'healthcare';
-  }
-  
-  // Fitness/Gym
-  if (['fitness', 'gym', 'yoga', 'pilates', 'crossfit', 'personal training', 'sports', 'martial arts', 'dance'].some(t => type.includes(t))) {
-    return 'fitness';
-  }
-  
-  // Beauty/Salon
-  if (['beauty', 'salon', 'spa', 'hair', 'nail', 'makeup', 'cosmetic', 'barber', 'skincare', 'esthetician'].some(t => type.includes(t))) {
-    return 'beauty';
-  }
-  
-  // Real Estate
-  if (['real estate', 'realestate', 'property', 'realtor', 'broker', 'housing', 'apartment', 'rental'].some(t => type.includes(t))) {
-    return 'realestate';
-  }
-  
-  // Education
-  if (['education', 'school', 'university', 'college', 'training', 'course', 'tutor', 'academy', 'learning', 'coaching'].some(t => type.includes(t))) {
-    return 'education';
-  }
-  
-  // Agency/Studio
-  if (['agency', 'studio', 'creative', 'design', 'marketing', 'advertising', 'branding', 'digital', 'media'].some(t => type.includes(t))) {
-    return 'agency';
-  }
-  
-  // Portfolio/Freelance
-  if (['portfolio', 'freelance', 'photographer', 'artist', 'designer', 'developer', 'consultant', 'personal'].some(t => type.includes(t))) {
-    return 'portfolio';
-  }
-  
-  // Startup/Tech
-  if (['startup', 'tech', 'saas', 'software', 'app', 'platform', 'technology', 'ai', 'fintech'].some(t => type.includes(t))) {
-    return 'startup';
-  }
-  
-  // E-commerce/Retail
-  if (['ecommerce', 'e-commerce', 'retail', 'shop', 'store', 'boutique', 'fashion', 'clothing', 'jewelry'].some(t => type.includes(t))) {
-    return 'ecommerce';
-  }
-  
-  // Default to service provider
-  return 'service';
-}
-
-// Router component that selects the right template
-function SiteTemplateRouter({ site, business, products }: SiteTemplateProps) {
-  const [formState, setFormState] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormState("loading");
-
-    const result = await createLead({
-      siteId: site.id,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone || undefined,
-      message: formData.message || undefined,
-      variant: site.variant,
-    });
-
-    if (result.success) {
-      setFormState("success");
-      setFormData({ name: "", email: "", phone: "", message: "" });
-    } else {
-      setFormState("error");
-    }
-  };
-
-  const templateType = getTemplateForBusinessType(business.businessType);
-  
-  // Convert business.openingHours to the right type
-  const openingHours = business.openingHours as Record<string, string> | null;
-
-  // Common props for all templates
-  const templateProps = {
-    site: {
-      ...site,
-      slug: site.slug,
-    },
-    business: {
-      ...business,
-      openingHours,
-    },
-    products,
-    formState,
-    formData,
-    onFormChange: setFormData,
-    onFormSubmit: handleSubmit,
-  };
-
-  // Render specialized template based on business type
-  switch (templateType) {
-    case 'restaurant':
-      return <RestaurantTemplate {...templateProps} />;
-    case 'healthcare':
-      return <HealthcareTemplate {...templateProps} />;
-    case 'fitness':
-      return <FitnessTemplate {...templateProps} />;
-    case 'beauty':
-      return <BeautyTemplate {...templateProps} />;
-    case 'realestate':
-      return <RealEstateTemplate {...templateProps} />;
-    case 'education':
-      return <EducationTemplate {...templateProps} />;
-    case 'agency':
-      return <AgencyTemplate {...templateProps} />;
-    case 'portfolio':
-      return <PortfolioTemplate {...templateProps} />;
-    case 'startup':
-      return <StartupTemplate {...templateProps} />;
-    case 'ecommerce':
-      return (
-        <EcommerceTemplate
-          site={site}
-          business={business}
-          products={products}
-          formState={formState}
-          formData={formData}
-          onFormChange={setFormData}
-          onFormSubmit={handleSubmit}
-        />
-      );
-    default:
-      return <ServiceTemplate {...templateProps} />;
-  }
+  const data = toBusinessData(props);
+  return <LandingTemplate data={data} />;
 }

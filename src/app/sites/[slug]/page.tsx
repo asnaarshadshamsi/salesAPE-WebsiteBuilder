@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { siteRepository } from "@/db/repositories";
 import { SiteTemplate } from "@/components/SiteTemplate";
+import LandingTemplate from "@/components/template/components/landing/LandingTemplate";
+import type { BusinessData } from "@/components/template/types/landing";
 import { WebsiteLaunchCelebration } from "@/components/WebsiteLaunchCelebration";
 import { selectVariant } from "@/lib/ai";
 import { trackPageView } from "@/actions/leads";
@@ -121,43 +123,47 @@ export default async function SitePage({ params }: SitePageProps) {
         site={{ headline: site.headline, slug: site.slug }}
       />
       
-      {/* Main Site Template */}
-      <SiteTemplate
-        site={{
-          id: site.id,
-          slug: site.slug,
-          headline: variant === "A" ? site.headline : (site.subheadline || site.headline),
-          subheadline: site.subheadline || null,
-          aboutText: site.aboutText || null,
-          ctaText: site.ctaText,
-          features,
-          testimonials,
-          variant,
-          // AI-enhanced content
-          tagline: site.tagline || null,
-          valuePropositions,
-          serviceDescriptions,
-        }}
-        business={{
-          name: business.name,
-          description: business.description || null,
-          logo: business.logo,
-          heroImage: business.heroImage,
-          galleryImages,
-          primaryColor: business.primaryColor,
-          secondaryColor: business.secondaryColor,
-          businessType: business.businessType,
-          services,
-          phone: business.phone,
-          email: business.email,
-          address: business.address,
-          city: business.city,
-          calendlyUrl: business.calendlyUrl,
-          socialLinks,
-          openingHours,
-        }}
-        products={products}
-      />
+      {/* Main Site Template — use templateData directly if available */}
+      {site.templateData ? (
+        <LandingTemplate data={JSON.parse(site.templateData as string) as BusinessData} />
+      ) : (
+        <SiteTemplate
+          site={{
+            id: site.id,
+            slug: site.slug,
+            headline: variant === "A" ? site.headline : (site.subheadline || site.headline),
+            subheadline: site.subheadline || null,
+            aboutText: site.aboutText || null,
+            ctaText: site.ctaText,
+            features,
+            testimonials,
+            variant,
+            // AI-enhanced content
+            tagline: site.tagline || null,
+            valuePropositions,
+            serviceDescriptions,
+          }}
+          business={{
+            name: business.name,
+            description: business.description || null,
+            logo: business.logo,
+            heroImage: business.heroImage,
+            galleryImages,
+            primaryColor: business.primaryColor,
+            secondaryColor: business.secondaryColor,
+            businessType: business.businessType,
+            services,
+            phone: business.phone,
+            email: business.email,
+            address: business.address,
+            city: business.city,
+            calendlyUrl: business.calendlyUrl,
+            socialLinks,
+            openingHours,
+          }}
+          products={products}
+        />
+      )}
     </>
   );
 }
