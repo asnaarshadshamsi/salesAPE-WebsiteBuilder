@@ -1,4 +1,4 @@
-export { Button } from "./button";
-export { Input } from "./input";
+export { Button } from "./Button";
+export { Input } from "./Input";
 export { Label } from "./label";
-export { Textarea } from "./textarea";
+export { Textarea } from "./Textarea";

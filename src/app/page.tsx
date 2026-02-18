@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { Rocket, Zap, Users, BarChart3, Globe, Calendar, Sparkles, Mic, ArrowRight } from "lucide-react";
+import { signOut } from "@/actions/auth";
+import { Rocket, Zap, Users, BarChart3, Globe, Calendar, Sparkles, Mic, ArrowRight, LogOut, User } from "lucide-react";
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -12,21 +13,37 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-linear-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg shadow-pink-500/25">
+              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg shadow-pink-500/25">
                 <Rocket className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-linear-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent">
                 HackSquad
               </span>
             </Link>
             <div className="flex items-center space-x-4">
               {user ? (
-                <Link
-                  href="/dashboard"
-                  className="px-4 py-2 bg-linear-to-r from-pink-500 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-pink-500/25 transition-all"
-                >
-                  Dashboard
-                </Link>
+                <>
+                  <span className="text-sm text-gray-400 hidden sm:inline">
+                    {user.name || user.email}
+                  </span>
+                  <Link
+                    href="/dashboard"
+                    className="px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-pink-500/25 transition-all flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                  <form action={signOut}>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-gray-300 hover:text-pink-400 hover:bg-zinc-900 rounded-xl font-medium transition-all flex items-center gap-2 border border-pink-500/20"
+                      aria-label="Sign out"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="hidden sm:inline">Sign Out</span>
+                    </button>
+                  </form>
+                </>
               ) : (
                 <>
                   <Link
@@ -37,7 +54,7 @@ export default async function HomePage() {
                   </Link>
                   <Link
                     href="/signup"
-                    className="px-4 py-2 bg-linear-to-r from-pink-500 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-pink-500/25 transition-all"
+                    className="px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-pink-500/25 transition-all"
                   >
                     Get Started
                   </Link>
@@ -51,7 +68,7 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Background gradient effects */}
-        <div className="absolute inset-0 bg-linear-to-b from-pink-500/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-pink-500/10 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-64 h-64 bg-pink-600/10 rounded-full blur-3xl" />
         
@@ -63,7 +80,7 @@ export default async function HomePage() {
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-6">
               Just Talk About Your Business
-              <span className="block bg-linear-to-r from-pink-400 via-pink-500 to-pink-600 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 bg-clip-text text-transparent">
                 We'll Build Your Website
               </span>
             </h1>
@@ -76,7 +93,7 @@ export default async function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href={user ? "/create" : "/signup"}
-                className="group px-8 py-4 bg-linear-to-r from-pink-500 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:shadow-pink-500/25 transition-all flex items-center gap-2"
+                className="group px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:shadow-pink-500/25 transition-all flex items-center gap-2"
               >
                 <Rocket className="w-5 h-5" />
                 {user ? "Create Your Website" : "Get Started Free"}
@@ -197,7 +214,7 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-linear-to-r from-pink-600 via-pink-500 to-pink-600 relative overflow-hidden">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-600 via-pink-500 to-pink-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20" />
         <div className="max-w-4xl mx-auto text-center relative">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
@@ -220,7 +237,7 @@ export default async function HomePage() {
       <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-zinc-950 text-gray-400 border-t border-pink-500/10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <div className="w-8 h-8 bg-linear-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center">
               <Rocket className="w-5 h-5 text-white" />
             </div>
             <span className="text-white font-bold">HackSquad</span>
@@ -245,7 +262,7 @@ function FeatureCard({
 }) {
   return (
     <div className="p-6 bg-zinc-900/50 border border-pink-500/10 rounded-2xl hover:border-pink-500/30 hover:shadow-lg hover:shadow-pink-500/5 transition-all group">
-      <div className="w-12 h-12 bg-linear-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-pink-500/25 transition-all">
+      <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-pink-500/25 transition-all">
         {icon}
       </div>
       <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
@@ -265,7 +282,7 @@ function StepCard({
 }) {
   return (
     <div className="text-center">
-      <div className="w-16 h-16 bg-linear-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg shadow-pink-500/25">
+      <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg shadow-pink-500/25">
         {number}
       </div>
       <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
@@ -273,3 +290,4 @@ function StepCard({
     </div>
   );
 }
+

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FormInput } from "@/components/ui/FormInput";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { X, Plus } from "lucide-react";
 
 interface TagManagerSectionProps {

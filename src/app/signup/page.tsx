@@ -51,10 +51,10 @@ function SignUpForm() {
       <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="w-10 h-10 bg-linear-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg shadow-pink-500/25">
+            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg shadow-pink-500/25">
               <Rocket className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-linear-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent">
               HackSquad
             </span>
           </Link>
@@ -136,3 +136,4 @@ export default function SignUpPage() {
     </Suspense>
   );
 }
+

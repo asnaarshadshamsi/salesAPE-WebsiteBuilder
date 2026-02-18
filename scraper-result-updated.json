@@ -1,0 +1,585 @@
+﻿{
+    "success":  true,
+    "duration":  "4.73s",
+    "basicInfo":  {
+                      "name":  "Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan",
+                      "description":  "Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.",
+                      "businessType":  "ecommerce",
+                      "confidence":  "high"
+                  },
+    "branding":  {
+                     "hasLogo":  true,
+                     "logoUrl":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=130",
+                     "hasHeroImage":  true,
+                     "heroImageUrl":  "http://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363",
+                     "primaryColor":  "#e10600",
+                     "secondaryColor":  "#3dbb18",
+                     "galleryImagesCount":  5
+                 },
+    "contact":  {
+                    "phone":  "5207670760",
+                    "email":  "sales@asimjofa.com",
+                    "address":  null,
+                    "city":  null,
+                    "socialLinks":  {
+                                        "instagram":  "https://www.instagram.com/asimjofa",
+                                        "facebook":  "https://www.facebook.com/asimjofaofficial",
+                                        "twitter":  "https://twitter.com/AsimJofa",
+                                        "linkedin":  "https://www.linkedin.com/company/asim-jofa",
+                                        "youtube":  "https://www.youtube.com/user",
+                                        "tiktok":  "http://tiktok.com/@asimjofa"
+                                    }
+                },
+    "content":  {
+                    "servicesCount":  0,
+                    "services":  [
+
+                                 ],
+                    "featuresCount":  0,
+                    "features":  [
+
+                                 ],
+                    "productsCount":  50,
+                    "products":  [
+                                     {
+                                         "name":  "AJSO-385 Unstitched 2 Pcs Shirt Trouser",
+                                         "price":  1743,
+                                         "description":  "Digital printed blended lawn wider width shirt \u0026amp; trouser 2.5 meters",
+                                         "hasImage":  true
+                                     },
+                                     {
+                                         "name":  "AJSO-383 Unstitched 2 Pcs Shirt Trouser",
+                                         "price":  1743,
+                                         "description":  "Digital printed blended lawn wider width shirt \u0026amp; trouser 2.5 meters",
+                                         "hasImage":  true
+                                     },
+                                     {
+                                         "name":  "AJSO-345 Unstitched 2 Pcs Shirt Trouser",
+                                         "price":  3010,
+                                         "description":  "DESIGN DETAILS: \"3 meters digital printed lawn shirt 2.5 meters dyed cambric trouser\"",
+                                         "hasImage":  true
+                                     },
+                                     {
+                                         "name":  "AJSO-344 Unstitched 2 Pcs Shirt Trouser",
+                                         "price":  3010,
+                                         "description":  "DESIGN DETAILS: \"3 meters digital printed lawn shirt 2.5 meters dyed cambric trouser\"",
+                                         "hasImage":  true
+                                     },
+                                     {
+                                         "name":  "AJSO-339 Unstitched 2 Pcs Shirt Trouser",
+                                         "price":  3440,
+                                         "description":  "DESIGN DETAILS: \"3 meters printed lawn shirt 2.5 meters printed cambric trouser\" 1 piece embroidered",
+                                         "hasImage":  true
+                                     }
+                                 ],
+                    "testimonialsCount":  0,
+                    "testimonials":  [
+
+                                     ]
+                },
+    "images":  {
+                   "totalCount":  14,
+                   "byType":  {
+                                  "hero":  3,
+                                  "logo":  5,
+                                  "product":  3,
+                                  "background":  3
+                              }
+               },
+    "rawTextPreview":  "Title: Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan\nMeta Description: Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.\n\nHeadings:\n# Asim Jofa\n## DAILY NEW IN\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB",
+    "fullData":  {
+                     "name":  "Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan",
+                     "description":  "Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.",
+                     "logo":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=130",
+                     "heroImage":  "http://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363",
+                     "galleryImages":  [
+                                           "https://asimjofa.com/cdn/shop/files/266-307-Mobile-Banner_jpg.jpg?v=1771323527\u0026width=1500",
+                                           "https://asimjofa.com/cdn/shop/files/266-307-Dextop-Banner_jpg.jpg?v=1771323523\u0026width=1500",
+                                           "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/appstore_icon_8a92f32e-99d0-43bf-b6c7-7f9c581a9407.png?v=1718110316",
+                                           "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/googleplay_icon_f20908b9-d50f-4807-b736-a32e1a1c8649.png?v=1718110343",
+                                           "https://cdn.shopify.com/s/assets/payment_icons/generic-dfdcaf09b6731ca14dd7441354c0ad8bc934184eb15ae1fda6a6b9e307675485.svg"
+                                       ],
+                     "primaryColor":  "#e10600",
+                     "secondaryColor":  "#3dbb18",
+                     "businessType":  "ecommerce",
+                     "services":  [
+
+                                  ],
+                     "features":  [
+
+                                  ],
+                     "products":  [
+                                      {
+                                          "name":  "AJSO-385 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "Digital printed blended lawn wider width shirt \u0026amp; trouser 2.5 meters",
+                                          "price":  1743,
+                                          "salePrice":  2490,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/asimjofa33509.jpg?v=1748668096",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-383 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "Digital printed blended lawn wider width shirt \u0026amp; trouser 2.5 meters",
+                                          "price":  1743,
+                                          "salePrice":  2490,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/asimjofa33340.jpg?v=1735218056",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-345 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "DESIGN DETAILS: \"3 meters digital printed lawn shirt 2.5 meters dyed cambric trouser\"",
+                                          "price":  3010,
+                                          "salePrice":  4300,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-345.jpg?v=1769164081",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-344 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "DESIGN DETAILS: \"3 meters digital printed lawn shirt 2.5 meters dyed cambric trouser\"",
+                                          "price":  3010,
+                                          "salePrice":  4300,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-344.jpg?v=1769163841",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-339 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "DESIGN DETAILS: \"3 meters printed lawn shirt 2.5 meters printed cambric trouser\" 1 piece embroidered daman border on dyed organza",
+                                          "price":  3440,
+                                          "salePrice":  4300,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-339.jpg?v=1769163670",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-340 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "Design Details: 2.2 Meter Printed Doby Shirt 1.5 meters wide-width dyed cambric trouser",
+                                          "price":  3160,
+                                          "salePrice":  3950,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-340.jpg?v=1768808441",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-337 Unstitched 3 Pcs Shirt Dupatta Trouser",
+                                          "description":  "Design Details: 1.8 meter wide width digital jacquard shirt 1.5 meter wide width dyed cambric trouser 2.5 meter digital gold mesuri dupatta",
+                                          "price":  4850,
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-334 Unstitched 2 Pcs Shirt Dupatta",
+                                          "description":  "Design Details: 3.2 Meters Cotton Jacquard for Shirt 2.5 Mtr Karandi Lines Dupatta",
+                                          "price":  2415,
+                                          "salePrice":  3450,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-334.jpg?v=1769062756",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-186 Embroidered Cambric Stitched 2pcs",
+                                          "description":  "Deep and romantic, this plum ensemble unfolds like a flourishing botanical dream. Garden-inspired embroidery blooms across the shirt, where floral and foliage motifs intertwine in a composition that feels lush yet harmonious. Scalloped edges along the sleeves and hem carve a graceful outline, adding",
+                                          "price":  8199,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7644.jpg?v=1771268664",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-307 Embroidered Dobby Stitched 2pcs",
+                                          "description":  "Rooted in heritage yet styled for today, this green ensemble celebrates cultural artistry through striking motifs that grace the front with presence and poise. The design feels expressive yet balanced, offering visual impact without excess. Scalloped detailing along the hem adds a refined contour, f",
+                                          "price":  6650,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7978.jpg?v=1771268413",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-266 Embroidered Dobby Stitched 2pcs",
+                                          "description":  "Rich and unapologetically bold, this bottle green ensemble commands attention through its intricate craftsmanship. Crimson threadwork sprawls lavishly across the front in baroque-inspired patterns, weaving depth and drama into the silhouette. A scalloped neckline enhances its sculpted form, while se",
+                                          "price":  8500,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7815.jpg?v=1771268229",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-263 Embroidered Dobby Stitched 2pcs",
+                                          "description":  "Modern and self-assured, this grey outfit redefines everyday elegance. The short shirt is adorned with threadwork in layered shades of blue, forming a cool-toned contrast that feels both contemporary and composed. The light base enhances the intricacy of the embroidery, allowing the detailing to sta",
+                                          "price":  8199,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A8098.jpg?v=1771267996",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-265 Embroidered Jacquard Stitched 2pcs",
+                                          "description":  "Sunlit and spirited, this yellow ensemble mirrors the warmth of a perfect summer afternoon. The front is illuminated with embroidery in refreshing contrasting tones, creating a soothing interplay against the vibrant base. Sleeves and hem are finished with refined thread fringe, adding texture and mo",
+                                          "price":  6699,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7276.jpg?v=1771267815",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-264 Embroidered Jacquard Stitched 2pcs",
+                                          "description":  "A study in contrast and craft, this black ensemble reinvents monochrome with artistic depth. The inky base becomes a dramatic backdrop for off-white and beige threadwork, where florals bloom amid whimsical bees and scattered stars. The interplay feels like a hand-drawn garden etched onto a midnight ",
+                                          "price":  8199,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7377.jpg?v=1771267607",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-306 Embroidered Raw Silk Stitched 2pcs",
+                                          "description":  "Light as morning air, this sky blue ensemble carries the serenity of a clear horizon. Delicate floral vines trail across the neckline and front, intertwining in a fluid composition that feels both intricate and effortless. Harmonious threadwork enhances the soothing base, creating a look that is ref",
+                                          "price":  8760,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7141.jpg?v=1771267442",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJPB-305 Embroidered Raw Silk Stitched 2pcs",
+                                          "description":  "Bold yet impeccably composed, this shocking pink ensemble channels contemporary finesse through artful restraint. The shirt embraces a modern minimalist narrative, punctuated by thoughtfully scattered motifs that lend rhythm and movement to the vibrant canvas. Scalloped accents along the sides and b",
+                                          "price":  8690,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A7902.jpg?v=1771267042",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-10 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Sleek and composed, charcoal grey offers a modern edge rooted in classic appeal. Itâs a confident choice for the man who values restraint, presenting strength and sophistication in equal measure. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1667.jpg?v=1770966053",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-09 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Versatile and confident, blue strikes the perfect balance between tradition and modernity. Designed for the man who moves seamlessly between occasions, it reflects ease, confidence, and refined taste. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1769.jpg?v=1770966045",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-08 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Deep and commanding, navy blue represents strength with sophistication. Crafted for the man who values structure and presence, this shade offers a polished look that never fades from relevance. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1006.jpg?v=1770965759",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-07 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Cool and composed, ice blue captures a sense of effortless refinement. Ideal for the man who carries calm confidence, this shade reflects clarity, poise, and modern elegance. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1860.jpg?v=1770966025",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-06 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Fresh and contemporary, pistachio green brings a modern softness to traditional wear. Itâs for the man who embraces individuality, offering a refined balance between subtle charm and distinctive style. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1595.jpg?v=1770966017",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-04 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Rich and earthy, brown reflects strength rooted in tradition. Crafted for the man who values authenticity, this shade speaks of reliability, depth, and a confident connection to heritage. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1514.jpg?v=1770965506",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-03 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Soft and grounded, fawn beige carries a sense of calm sophistication. Itâs a refined choice for the man who appreciates subtlety, blending warmth and elegance into a look that feels both modern and timeless. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1093.jpg?v=1770965470",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-02 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "A timeless expression of purity and grace, white embodies understated luxury and classic masculinity. Crafted for the man who believes true style needs no excess, this shade reflects confidence through simplicity and quiet strength. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs sui",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1197.jpg?v=1770965436",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-01 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Exude subtle sophistication with an earthy tone that reflects quiet confidence and refined elegance. Designed for the man who values individuality, this fabric allows him to stand out effortlessly while remaining true to his unique path. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pc",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1432.jpg?v=1770965379",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJUBM-05 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "description":  "Bold yet refined, black is the ultimate symbol of power and presence. Designed for the man who commands attention without effort, this shade defines confidence, authority, and timeless elegance. DESIGN DETAILS 100% Egyptian Cotton 4.25 meter fabric for 2 pcs suit (58\" width)",
+                                          "price":  5790,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/022A1339_014044c9-de37-4e30-b3d1-651c33f57882.jpg?v=1770965533",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-12 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Deep, resonant, and dripping with dramatic flair, this maroon ensemble is a masterpiece of tonal shading and modern edge. The shirt serves as a sanctuary of depth, utilizing a rich palette of maroon and rouge pink threads to create a floral landscape that feels alive with movement. The meticulous ap",
+                                          "price":  24800,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4762_1cd48dac-a2b8-41ab-b571-09d154cb001b.webp?v=1770881315",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-11 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Drenched in the soft romance of a twilight garden, this tea pink ensemble is a seamless canvas of architectural beauty and tactile wonder. The shirt is an embroidered masterpiece where the boring technique creates a lattice of light across the fabric, offering a peek into a world of refined craftsma",
+                                          "price":  24500,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A5412_002c4a64-77d9-4dfa-8420-dcc09a62f455.webp?v=1770881139",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-10 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Emerging from the quiet serenity of an arctic dawn, this ice blue ensemble is a chillingly beautiful study in ethereal grace. The shirt is a canvas of crystalline artistry, featuring a delicate frost of threadwork in shades of apple green, soft pink, and tonal blue that weave together intricate natu",
+                                          "price":  27200,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A5501_fd7e9ad9-3656-48be-9aaf-52795b0c98f3.webp?v=1770880879",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-09 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Bathed in the golden glow of a perennial summer, this light yellow ensemble is a breathtaking revival of high-period opulence, reminiscent of the extravagant floral designs found in Rococo tapestries. The shirt is a masterpiece of exuberant detail, where a vibrant garden of light pink, fuchsia, ligh",
+                                          "price":  23800,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4888_be46e562-2d76-44f5-9bd1-1598b21f3a9a.webp?v=1770880480",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-08 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Breathable and bright, this light mint green ensemble is an embroidered masterpiece that captures the essence of a spring morning. The fabric is a canvas of all-over boring technique, layered with threadwork in a multifaceted palette of dark mint, beige, cornflower blue, and deep tea pink. The daman",
+                                          "price":  27400,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4906_dc5e0427-b934-49f0-b570-7af944262c84.webp?v=1770880254",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-07 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Merging contemporary trends with timeless class, this magenta purple ensemble is a vibrant tribute to modern femininity. The short-shirt silhouette is meticulously embroidered with rustish peach, leaf green, and pale peach hues, creating a warm, sun-kissed floral effect. The allure of the boring tec",
+                                          "price":  26600,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A3540_e046a048-8a09-4ce8-a2bf-cfa1127644ba.webp?v=1770879949",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-06 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Drenched in the deep, regal spirit of the woods, this bottle green ensemble is a rich tapestry of color and high-end craftsmanship. The shirt is exquisitely detailed with threadwork in a sophisticated palette of beige, coral pink, lilac, and sage, coupled with applique bunches for sleeves and shirtâ",
+                                          "price":  26600,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4596_76b3d0f0-7b87-429e-9c83-25008135a3e1.webp?v=1770881446",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-05 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Enshrouded in the mystery of the night, this black ensemble is a masterpiece composed of layers upon layers of luxury. The shirt is gorgeously embroidered with a palette of pink, mint, and greyish-beige threads, creating a striking contrast against the dark base. Sheer organza inserts are seamlessly",
+                                          "price":  25800,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4079_09bdf104-8f3a-47e9-8b5c-2c33ea8a6332.webp?v=1770879435",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-04 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Evoking the timeless allure of a vintage photograph, this ivory ensemble is a monochromatic masterpiece designed for the true minimalist at heart. The pristine ivory base is dramatically transformed by bold black threadwork that graces both the front and back of the shirt in a display of stark, soph",
+                                          "price":  26000,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4375_66b8ad85-4628-497f-b816-255513f5d6b8.webp?v=1770879203",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-03 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Commanding the room with the coolness of a coastal breeze, this blue ensemble is an intricate study in vibrant contrasts and immaculate artistry. The shirt is meticulously brought to life with threadwork in off-white, fuchsia, and mint, culminating in a show-stopping cutwork daman that serves as the",
+                                          "price":  27100,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A3668_45a8a72e-d894-4d95-bebd-75576e9e7de8.webp?v=1770878744",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-02 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Steeping the senses in a vibrant viticulture of style, this magenta masterpiece is a bold celebration of floral and botanical brilliance. The shirt is an artisanal triumph, heavily embroidered with lush green and beige hues that recreate the vitality of a summer garden. Utilizing a sophisticated app",
+                                          "price":  25100,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A5174_89303dad-68e2-423b-b58c-c563cd71c91e.webp?v=1770877604",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-01 Embroidered Lawn Stitched 3 Pcs",
+                                          "description":  "Woven from the silvery mist of a twilight sky, this grey masterpiece stands as a breathtaking tribute to the timeless romance of vintage florals. The ensemble is a botanical poetry in motion, featuring an exquisite garden of tea pink, cornflower blue, beige, and sage green threads that bloom across ",
+                                          "price":  28100,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A5291_10711055-0857-4c03-86b1-dc965daffc1d.webp?v=1770876818",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-12 Embroidered Lawn Unstitched 3 Pcs \u003cspan class=\"eid_sale\"\u003eEID Edit\u003c/span\u003e",
+                                          "description":  "Deep, resonant, and dripping with dramatic flair, this maroon ensemble is a masterpiece of tonal shading and modern edge. The shirt serves as a sanctuary of depth, utilizing a rich palette of maroon and rouge pink threads to create a floral landscape that feels alive with movement. The meticulous ap",
+                                          "price":  12990,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4762.webp?v=1770373235",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-08 Embroidered Lawn Unstitched 3 Pcs \u003cspan class=\"eid_sale\"\u003eEID Edit\u003c/span\u003e",
+                                          "description":  "Breathable and bright, this light mint green ensemble is an embroidered masterpiece that captures the essence of a spring morning. The fabric features all-over boring technique, layered with threadwork in a multifaceted palette of dark mint, beige, cornflower blue, and deep tea pink. The daman stand",
+                                          "price":  13100,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A4906.webp?v=1770373015",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-373 Unstitched 2 Pcs Shirt Dupatta",
+                                          "description":  "DESIGN DETAILS: 1.75 Meter shirt on Dyed Cambric 2.5-meter digital printed Mesuri gold dupatta \"1 pcs embroidered neckline on dyed organza 2 pcs embroidered border on dyed organza\"",
+                                          "price":  4690,
+                                          "salePrice":  6700,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-373.jpg?v=1770708307",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJULW-11 Embroidered Lawn Unstitched 3 Pcs \u003cspan class=\"eid_sale\"\u003eEID Edit\u003c/span\u003e",
+                                          "description":  "Drenched in the soft romance of a twilight garden, this tea pink ensemble is a seamless canvas of architectural beauty and tactile wonder. The shirt is an embroidered masterpiece where the boring technique creates a lattice of light across the fabric, offering a peek into a world of refined craftsma",
+                                          "price":  13200,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/884A5412.webp?v=1770373184",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-249 EMBROIDERED RAW SILK Stitched  3PC Shirt Dupatta Trouser",
+                                          "description":  "AJPB-171 EMBROIDERED RAW SILK 3PC",
+                                          "price":  5400,
+                                          "salePrice":  6750,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-249_825dca26-9c7a-49f3-86fe-b0bcf28fac6b.jpg?v=1769168073",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-321 Stitched 2 Pcs Shirt Trouser",
+                                          "description":  "Design Details: EMBROIDERED CAMBRIC 2 PCS",
+                                          "price":  4400,
+                                          "salePrice":  5500,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/MG_0251_3897c4c3-0b56-4d12-9f61-a4bb568b5908.jpg?v=1770187611",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-320 Stitched 1 Pc Shirt",
+                                          "description":  "Design Details: PRINTED COTTON SILK 1 PCS",
+                                          "price":  2800,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/02_d512affb-12e5-42f7-b91c-48826d8efcf4.jpg?v=1770187328",
+                                          "category":  "Stitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-303 Unstitched 2 Pcs Shirt Trouser",
+                                          "description":  "Design Details: \"Silver dust and paste printed cambric shirt front Silver dust and paste printed cambric shirt back Silver dust and paste printed cambric sleeves 1 embroidered neckline on cotton silk 1.3 meters (wider width) dyed cambric for trouser\"",
+                                          "price":  4340,
+                                          "salePrice":  6200,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-303.jpg?v=1769062865",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "Ajso-200 Unstitched 3 Pcs Shirt Dupatta Trouser",
+                                          "description":  "DESIGN DETAILS: 2 Meter (wider width) rotary printed cambric shirt with gold paste 2.5 Meter Digital printed Poly Silk Dupatta 1.5 Meter wide width dyed cambric trouser",
+                                          "price":  6300,
+                                          "salePrice":  9000,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-200_10c6c684-b392-4686-b4ff-07b132228477.jpg?v=1769167143",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "Ajso-220 Unstitched 3 Pcs Shirt Dupatta Trouser",
+                                          "description":  "DESIGN DETAILS: 3 Meter Dyed Poly Raw Silk Shirt 1.5 Meter Dyed Poly Raw Silk Trouser 2.5 Printed Munar Dupatta 1 Pc Neckline and Border",
+                                          "price":  4060,
+                                          "salePrice":  5800,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-220-2_423ff42a-5c6f-4fe6-85b4-2d8dccf297d8.jpg?v=1769167304",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-308 Unstitched 3 Pcs Shirt Dupatta Trouser",
+                                          "description":  "Design Details: 3 meter dyed khaddar Shirt 1.6 meter dyed khaddar Trouser 1 Pc Embroidered Neckline 2.5 meter digital printed chiffon dupatta",
+                                          "price":  6510,
+                                          "salePrice":  9300,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-308.jpg?v=1769084963",
+                                          "category":  "Unstitched"
+                                      },
+                                      {
+                                          "name":  "AJSO-282 Unstitched 3 Pcs Shirt Dupatta Trouser",
+                                          "description":  "DESIGN DETAILS: \"1.75 meter digital printed lawn shirt 1.6 meter dyed cambric trouser\" 2.5 meter digital printed chiffon dupatta 1 Pc Embroidered Border",
+                                          "price":  4350,
+                                          "image":  "https://cdn.shopify.com/s/files/1/0690/7320/7593/files/AJSO-282.jpg?v=1769606640",
+                                          "category":  "Unstitched"
+                                      }
+                                  ],
+                     "phone":  "5207670760",
+                     "email":  "sales@asimjofa.com",
+                     "address":  null,
+                     "city":  null,
+                     "socialLinks":  {
+                                         "instagram":  "https://www.instagram.com/asimjofa",
+                                         "facebook":  "https://www.facebook.com/asimjofaofficial",
+                                         "twitter":  "https://twitter.com/AsimJofa",
+                                         "linkedin":  "https://www.linkedin.com/company/asim-jofa",
+                                         "youtube":  "https://www.youtube.com/user",
+                                         "tiktok":  "http://tiktok.com/@asimjofa"
+                                     },
+                     "aboutContent":  "",
+                     "testimonials":  [
+
+                                      ],
+                     "confidence":  "high",
+                     "sourceType":  "website",
+                     "scrapedAt":  "2026-02-18T09:03:00.952Z",
+                     "rawText":  "Title: Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan\nMeta Description: Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.\n\nHeadings:\n# Asim Jofa\n## DAILY NEW IN\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJUBM-07 UNSTITCHED EGYPTIAN COTTON 2PC\n# EID SEASON\n## SHOP BY COLLECTIONS\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJULW-07 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-03 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-11 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-10 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-04 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-12 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-01 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-02 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULFI-07 Embroidered Silk Unstitched 2 Pcs\n### AJULFI-01 Embroidered Net Unstitched 2 Pcs\n### AJULFI-03 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULFI-02 Embroidered Net Unstitched 3 Pcs\n### AJULFI-06 Embroidered Net Unstitched 3 Pcs\n### AJULFI-09 Embroidered Net Unstitched 2 Pcs\n### AJULFI-08 Embroidered Organza Unstitched 3 Pcs\n### AJULFI-04 Embroidered Chiffon Unstitched 3 Pcs\n### AJLPN-02 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-01 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-05 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-04 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-03 Embroidered Poly Net Stitched 3pcs\n### AJLPN-07 Embroidered Poly Net Stitched 3pcs\n### AJLPN-06 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-08 Embroidered Poly Net Stitched 3pcs\n### AJULSC-03 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-05 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-01 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-02 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-06 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-08 Embroidered Raw Silk Unstitched 3 Pcs\n### AJULSC-07 Embroidered Raw Silk Unstitched 3 Pcs\n### AJULSC-04 Embroidered Crepe Silk Unstitched 3 Pcs\n### AJULN-21 Embroidered Chiffon Unstitched 3 Pcs\n### AJULN-05 Embroidered Javeria Net Unstitched 3 Pcs\n### AJULN-12 Embroidered Zari Check Net Unstitched 3 Pcs\n### AJULN-08 Embroidered Net Unstitched 3 Pcs\n### AJULN-04 Embroidered Chiffon Unstitched 3 Pcs\n### AJULN-11 Embroidered Two Toned Cotton Silk Unstitched 3 Pcs\n### AJULN-06 Embroidered Silk Unstitched 3 Pcs\n### AJULN-15 Embroidered Zari Tissue Net Unstitched 3 Pcs\n### AJULD-08 Embroidered Spun Raw Silk Unstitched 3 Pcs\n### AJULD-01 Embroidered Chiffon Unstitched 3 Pcs\n### AJULD-05 Embroidered Boski Silk Unstitched 3 Pcs\n### AJULD-02 Embroidered Boski Silk Unstitched 3 Pcs\n### AJULD-10 Embroidered Poly Net Unstitched 3 Pcs\n### AJULD-09 Embroidered Raw Silk Unstitched 3 Pcs\n### AJULD-06 Embroidered Chiffon Unstitched 3 Pcs\n### AJULD-12 Embroidered Chiffon Unstitched 3 Pcs\n### AJULK-08 Embroidered Rod Unstitched 3 Pcs\n### AJULK-04 Embroidered Rod Unstitched 3 Pcs\n### AJULK-01 Embroidered Herringbone Unstitched 3 Pcs\n### AJULK-02 Embroidered Rod Unstitched 3 Pcs\n### AJULK-03 Embroidered Rod Unstitched 3 Pcs\n### AJULK-05 Embroidered Rod Unstitched 3 Pcs\n### AJULK-07 Embroidered Rod Unstitched 3 Pcs\n### AJULK-06 Embroidered Rod Unstitched 3 Pcs\n### CONTACT US\n### CONTACT US\n### CUSTOMER CARE\n### CUSTOMER CARE\n### INFORMATION\n### INFORMATION\n### POLICIES\n### POLICIES\n### NEWSLETTER SIGNUP\n### NEWSLETTER SIGNUP\n# DAILY NEW IN\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJUBM-07 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-10 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-04 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-06 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-08 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-02 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-09 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-01 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-03 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-05 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJULDD-02 Embroidered Boski Silk Stitched 3 Pcs\n### AJULW-12 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-08 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-11 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-03 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-05 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-10 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-09 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-07 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-01 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-04 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-06 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-02 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULFI-09 Embroidered Net Unstitched 2 Pcs\n### AJULFI-08 Embroidered Organza Unstitched 3 Pcs\n### AJULFI-04 Embroidered Chiffon Unstitched 3 Pcs\n### AJULFI-07 Embroidered Silk Unstitched 2 Pcs\n### AJULFI-06 Embroidered Net Unstitched 3 Pcs\n### AJULFI-05 Embroidered Chiffon Unstitched 3 Pcs\n### AJULFI-01 Embroidered Net Unstitched 2 Pcs\n### AJULFI-03 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULFI-02 Embroidered Net Unstitched 3 Pcs\n### AJLPN-07 Embroidered Poly Net Stitched 3pcs\n### AJLPN-09 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-03 Embroidered Poly Net Stitched 3pcs\n### AJLPN-06 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-05 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-02 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-08 Embroidered Poly Net Stitched 3pcs\n### AJLPN-01 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-10 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-04 Embroidered Poly Silk Stitched 2pcs\n### AJULSC-01 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### CONTACT US\n### CONTACT US\n### CUSTOMER CARE\n### CUSTOMER CARE\n### INFORMATION\n### INFORMATION\n### POLICIES\n### POLICIES\n### NEWSLETTER SIGNUP\n### NEWSLETTER SIGNUP\n# Ready To Wear\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJULW-12 Embroidered Lawn Stitched 3 Pcs\n### AJULW-11 Embroidered Lawn Stitched 3 Pcs\n### AJULW-10 Embroidered Lawn Stitched 3 Pcs\n### AJULW-09 Embroidered Lawn Stitched 3 Pcs\n### AJULW-08 Embroidered Lawn Stitched 3 Pcs\n### AJULW-07 Embroidered Lawn Stitched 3 Pcs\n### AJULW-06 Embroidered Lawn Stitched 3 Pcs\n### AJULW-05 Embroidered Lawn Stitched 3 Pcs\n### AJULW-04 Embroidered Lawn Stitched 3 Pcs\n### AJULW-03 Embroidered Lawn Stitched 3 Pcs\n### AJULW-02 Embroidered Lawn Stitched 3 Pcs\n### AJULW-01 Embroidered Lawn Stitched 3 Pcs\n### AJLPN-10 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-09 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-08 Embroidered Poly Net Stitched 3pcs\n### AJLPN-07 Embroidered Poly Net Stitched 3pcs\n### AJLPN-06 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-05 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-04 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-03",
+                     "scrapedImages":  [
+                                           {
+                                               "url":  "http://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363",
+                                               "alt":  "og:image",
+                                               "type":  "hero"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=130",
+                                               "alt":  "Asim Jofa",
+                                               "width":  130,
+                                               "height":  65,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363\u0026width=90",
+                                               "alt":  "Asim Jofa",
+                                               "width":  90,
+                                               "height":  43,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=95",
+                                               "alt":  "Asim Jofa",
+                                               "width":  95,
+                                               "height":  48,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Mobile-Banner_jpg.jpg?v=1771323527\u0026width=1500",
+                                               "alt":  "",
+                                               "width":  375,
+                                               "height":  1500,
+                                               "type":  "hero"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Dextop-Banner_jpg.jpg?v=1771323523\u0026width=1500",
+                                               "alt":  "",
+                                               "width":  375,
+                                               "height":  1120,
+                                               "type":  "hero"
+                                           },
+                                           {
+                                               "url":  "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/appstore_icon_8a92f32e-99d0-43bf-b6c7-7f9c581a9407.png?v=1718110316",
+                                               "alt":  "asim jofa ios",
+                                               "width":  100,
+                                               "type":  "product"
+                                           },
+                                           {
+                                               "url":  "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/googleplay_icon_f20908b9-d50f-4807-b736-a32e1a1c8649.png?v=1718110343",
+                                               "alt":  "asim jofa android",
+                                               "width":  100,
+                                               "type":  "product"
+                                           },
+                                           {
+                                               "url":  "https://cdn.shopify.com/s/assets/payment_icons/generic-dfdcaf09b6731ca14dd7441354c0ad8bc934184eb15ae1fda6a6b9e307675485.svg",
+                                               "alt":  "master",
+                                               "type":  "product"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363\u0026width=100",
+                                               "alt":  "Asim Jofa",
+                                               "width":  100,
+                                               "height":  48,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363\u0026width=95",
+                                               "alt":  "Asim Jofa",
+                                               "width":  95,
+                                               "height":  45,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Mobile-Banner_jpg.jpg?v=1771323527\u0026width=1",
+                                               "alt":  "",
+                                               "type":  "background"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Dextop-Banner_jpg.jpg?v=1771323523\u0026width=1",
+                                               "alt":  "",
+                                               "type":  "background"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/BEST-SELLERS-SHOP-NOW_4ee4fe6d-ad8f-48b5-9edf-6b70a0cb022f.gif?v=1768548695\u0026width=1",
+                                               "alt":  "",
+                                               "type":  "background"
+                                           }
+                                       ]
+                 }
+}

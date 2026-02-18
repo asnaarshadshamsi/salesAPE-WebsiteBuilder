@@ -28,10 +28,11 @@ export async function middleware(request: NextRequest) {
   // Check if token is actually valid
   const hasValidToken = token ? await isValidToken(token) : false;
 
-  // If token exists but is invalid, clear it immediately
+  // If token exists but is invalid, clear it immediately and allow the request
   if (token && !hasValidToken) {
     const response = NextResponse.next();
     response.cookies.delete("auth-token");
+    // Don't redirect, just continue with cleared cookie
     return response;
   }
 
@@ -51,10 +52,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect to dashboard if accessing auth pages while logged in with valid token
+  // But only if we're not already being redirected (prevent loops)
   if (isAuthPath && hasValidToken) {
-    // Unless they have the continue param (from onboarding flow)
     const continueParam = request.nextUrl.searchParams.get("continue");
-    if (!continueParam) {
+    const redirectParam = request.nextUrl.searchParams.get("redirect");
+    
+    // Don't redirect if they have continue param or are being redirected here
+    if (!continueParam && !redirectParam) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }

@@ -3,9 +3,14 @@ import { BusinessData } from "../../types/landing";
 interface FooterSectionProps {
   data: NonNullable<BusinessData["footer"]>;
   brandName: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+    address?: string;
+  };
 }
 
-const FooterSection = ({ data, brandName }: FooterSectionProps) => {
+const FooterSection = ({ data, brandName, contact }: FooterSectionProps) => {
   return (
     <footer className="py-12 border-t border-border">
       <div className="max-w-7xl mx-auto px-6">
@@ -18,6 +23,35 @@ const FooterSection = ({ data, brandName }: FooterSectionProps) => {
               <p className="text-sm text-muted-foreground">
                 {data.description}
               </p>
+            )}
+            {contact && (contact.phone || contact.email || contact.address) && (
+              <div className="mt-4 space-y-1 text-sm text-muted-foreground">
+                {contact.phone && (
+                  <p>
+                    📞{' '}
+                    <a 
+                      href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`}
+                      className="hover:text-foreground transition-colors"
+                    >
+                      {contact.phone}
+                    </a>
+                  </p>
+                )}
+                {contact.email && (
+                  <p>
+                    ✉️{' '}
+                    <a 
+                      href={`mailto:${contact.email}`}
+                      className="hover:text-foreground transition-colors"
+                    >
+                      {contact.email}
+                    </a>
+                  </p>
+                )}
+                {contact.address && (
+                  <p>📍 {contact.address}</p>
+                )}
+              </div>
             )}
           </div>
 

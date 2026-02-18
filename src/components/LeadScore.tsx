@@ -175,7 +175,7 @@ export function AIFollowUpSuggestion({ leadName, businessType }: AIFollowUpProps
   };
 
   return (
-    <div className="bg-linear-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
+    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="w-4 h-4 text-indigo-600" />
         <span className="text-sm font-medium text-indigo-900">AI-Suggested Follow-up</span>
@@ -205,3 +205,4 @@ export function AIFollowUpSuggestion({ leadName, businessType }: AIFollowUpProps
     </div>
   );
 }
+

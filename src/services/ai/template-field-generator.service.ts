@@ -11,6 +11,7 @@
 
 import { BusinessData } from '@/components/template/types/landing';
 import { BusinessType, Testimonial } from '@/types';
+import { decodeHTMLEntities } from '@/lib/utils';
 
 const COHERE_API_KEY = process.env.COHERE_API_KEY || process.env.cohere_api_key || '';
 const COHERE_API_URL = 'https://api.cohere.ai/v1';
@@ -164,6 +165,14 @@ export class TemplateFieldGeneratorService {
 
   private buildLLMPrompt(merged: MergedData): string {
     const year = new Date().getFullYear();
+    
+    // Specific instructions based on business type
+    let businessSpecificInstructions = '';
+    if (merged.businessType === 'fitness') {
+      businessSpecificInstructions = 'IMPORTANT FOR FITNESS/GYM: Focus on transformation and membership programs. Memberships are SERVICES not products. Use fitness-oriented CTAs.\\n';
+    } else if (merged.businessType === 'ecommerce') {
+      businessSpecificInstructions = 'IMPORTANT FOR ECOMMERCE: Include products section with items, prices, categories. Use shopping CTAs.\\n';
+    }
 
     return `You are an expert copywriter and web designer. Based on the scraped website data below, generate a COMPLETE website content JSON for a landing page.
 
@@ -177,12 +186,15 @@ RULES:
 7. Generate realistic stats (e.g. "500+", "98%", "24/7", "10+").
 8. Use action-oriented CTAs matching the business type.
 9. DO NOT include image URLs in the JSON — images are handled separately.
+10. For ${merged.businessType === 'ecommerce' ? 'ECOMMERCE' : 'non-ecommerce'} businesses, ${merged.businessType === 'ecommerce' ? 'INCLUDE a products section with realistic items, prices, and categories' : 'OMIT the products section unless specific products were scraped'}.
 
+${businessSpecificInstructions}
 BUSINESS INFO:
 - Name: ${merged.name}
 - Type: ${merged.businessType}
 - Industry: ${merged.industry || 'Not specified'}
 - Target Audience: ${merged.targetAudience || 'General'}
+${merged.products.length > 0 ? `- Products found: ${merged.products.length} items` : '- No products scraped'}
 
 SCRAPED CONTENT:
 ${merged.rawText ? merged.rawText.slice(0, 5000) : 'No scraped content available.'}
@@ -218,8 +230,8 @@ Return a JSON object that matches this EXACT schema (no extra keys, no markdown,
     ]
   },
   "about": {
-    "title": "About section title",
-    "description": "2-4 sentences about the business (50-150 words)"
+    "title": "About Us" or "Our Story" or similar engaging title,
+    "description": "Write a compelling, warm, and engaging 3-5 paragraph About section (150-250 words). Start with what makes the business special, then explain their mission/values, include what they offer, and end with a welcoming statement. Use conversational tone with contractions (we're, you'll, that's). Make it personal and authentic, as if speaking directly to customers. Example style: 'We're more than just a [type] - we're a place where real people come together to [goal]. We get it - [common challenge]. That's why we're here to [solution]...'"
   },
   "features": {
     "title": "Why Choose Us or similar",
@@ -247,6 +259,14 @@ Return a JSON object that matches this EXACT schema (no extra keys, no markdown,
       { "title": "Service 2", "description": "2-3 sentences" },
       { "title": "Service 3", "description": "2-3 sentences" },
       { "title": "Service 4", "description": "2-3 sentences" }
+    ]
+  },
+  "products": {
+    "title": "Featured Products or Shop Our Collection (for ecommerce only)",
+    "subtitle": "Brief subtitle",
+    "items": [
+      { "name": "Product 1", "description": "Brief description", "price": 29.99, "salePrice": 24.99, "category": "Category" },
+      { "name": "Product 2", "description": "Brief description", "price": 49.99, "category": "Category" }
     ]
   },
   "testimonials": {
@@ -298,7 +318,14 @@ JSON:`;
       }
 
       return {
-        brand: { name: p.brand.name, logo: p.brand.logo, tagline: p.brand.tagline },
+        brand: { 
+          name: p.brand.name, 
+          logo: p.brand.logo, 
+          tagline: p.brand.tagline,
+          businessType: p.brand.businessType,
+          primaryColor: p.brand.primaryColor,
+          secondaryColor: p.brand.secondaryColor,
+        },
         hero: {
           headline: p.hero.headline,
           subheadline: p.hero.subheadline,
@@ -311,8 +338,10 @@ JSON:`;
         features: p.features || undefined,
         stats: p.stats || undefined,
         services: p.services || undefined,
+        products: p.products || undefined,
         testimonials: p.testimonials || undefined,
         cta: p.cta || undefined,
+        contact: p.contact || undefined,
         footer: p.footer || undefined,
       };
     } catch (err) {
@@ -328,6 +357,54 @@ JSON:`;
   private overlayImages(data: BusinessData, merged: MergedData): BusinessData {
     // Logo
     if (merged.logo) data.brand.logo = merged.logo;
+
+    // Business type
+    if (merged.businessType) data.brand.businessType = merged.businessType;
+
+    // Colors - override with scraped colors
+    if (merged.primaryColor) data.brand.primaryColor = merged.primaryColor;
+    if (merged.secondaryColor) data.brand.secondaryColor = merged.secondaryColor;
+
+    // Decode HTML entities in text fields from LLM
+    if (data.hero.headline) data.hero.headline = decodeHTMLEntities(data.hero.headline);
+    if (data.hero.subheadline) data.hero.subheadline = decodeHTMLEntities(data.hero.subheadline);
+    if (data.brand.tagline) data.brand.tagline = decodeHTMLEntities(data.brand.tagline);
+    
+    // Decode About section
+    if (data.about?.description) {
+      data.about.description = decodeHTMLEntities(data.about.description);
+    }
+    if (data.about?.title) {
+      data.about.title = decodeHTMLEntities(data.about.title);
+    }
+
+    // Decode features
+    if (data.features?.items) {
+      data.features.items = data.features.items.map(item => ({
+        ...item,
+        title: decodeHTMLEntities(item.title),
+        description: decodeHTMLEntities(item.description),
+      }));
+    }
+
+    // Decode services
+    if (data.services?.items) {
+      data.services.items = data.services.items.map(item => ({
+        ...item,
+        title: decodeHTMLEntities(item.title),
+        description: decodeHTMLEntities(item.description),
+      }));
+    }
+
+    // Decode testimonials
+    if (data.testimonials?.items) {
+      data.testimonials.items = data.testimonials.items.map(item => ({
+        ...item,
+        quote: decodeHTMLEntities(item.quote),
+        author: decodeHTMLEntities(item.author),
+        role: item.role ? decodeHTMLEntities(item.role) : undefined,
+      }));
+    }
 
     // Hero image
     if (merged.heroImage) data.hero.image = merged.heroImage;
@@ -368,6 +445,16 @@ JSON:`;
       });
     }
 
+    // Contact info and calendly URL
+    if (!data.contact) {
+      data.contact = {};
+    }
+    if (merged.email) data.contact.email = merged.email;
+    if (merged.phone) data.contact.phone = merged.phone;
+    if (merged.address) data.contact.address = merged.address;
+    if (merged.city) data.contact.city = merged.city;
+    if (merged.calendlyUrl) data.contact.calendlyUrl = merged.calendlyUrl;
+
     // Footer socials
     if (data.footer && merged.socialLinks) {
       const socials = Object.entries(merged.socialLinks)
@@ -392,6 +479,9 @@ JSON:`;
         name: merged.name,
         logo: merged.logo || undefined,
         tagline: merged.keyMessages?.[0] || merged.category || merged.industry || config.heroTag,
+        businessType: merged.businessType,
+        primaryColor: merged.primaryColor || '#3b82f6',
+        secondaryColor: merged.secondaryColor || '#8b5cf6',
       },
       hero: this.generateHero(merged, config),
       nav: this.generateNav(merged),
@@ -399,8 +489,16 @@ JSON:`;
       features: this.generateFeatures(merged, config),
       stats: this.generateStats(merged),
       services: this.generateServices(merged, config),
+      products: this.generateProducts(merged),
       testimonials: this.generateTestimonials(merged, config),
       cta: this.generateCta(merged, config),
+      contact: {
+        email: merged.email || undefined,
+        phone: merged.phone || undefined,
+        address: merged.address || undefined,
+        city: merged.city || undefined,
+        calendlyUrl: merged.calendlyUrl || undefined,
+      },
       footer: this.generateFooter(merged),
     };
   }
@@ -591,8 +689,8 @@ JSON:`;
 
   private generateHero(merged: MergedData, config: any): BusinessData['hero'] {
     return {
-      headline: merged.keyMessages?.[0] || `Welcome to ${merged.name}`,
-      subheadline: merged.description || `Professional ${merged.businessType} services`,
+      headline: decodeHTMLEntities(merged.keyMessages?.[0] || `Welcome to ${merged.name}`),
+      subheadline: decodeHTMLEntities(merged.description || `Professional ${merged.businessType} services`),
       cta: { label: merged.callToAction || config.primaryCTA, href: '#contact' },
       secondaryCta: { label: config.secondaryCTA, href: '#about' },
       image: merged.heroImage || undefined,
@@ -603,6 +701,7 @@ JSON:`;
     const links: { label: string; href: string }[] = [];
     if (merged.aboutContent || merged.description) links.push({ label: 'About', href: '#about' });
     if (merged.features.length > 0) links.push({ label: 'Features', href: '#features' });
+    if (merged.products.length > 0 || merged.businessType === 'ecommerce') links.push({ label: 'Shop', href: '#products' });
     if (merged.services.length > 0) links.push({ label: 'Services', href: '#services' });
     if (merged.testimonials.length > 0) links.push({ label: 'Testimonials', href: '#testimonials' });
     links.push({ label: 'Contact', href: '#contact' });
@@ -610,9 +709,10 @@ JSON:`;
   }
 
   private generateAbout(merged: MergedData, config: any): BusinessData['about'] {
+    const aboutText = merged.aboutContent || merged.description || `${merged.name} is dedicated to providing exceptional ${merged.businessType} services.`;
     return {
       title: config.aboutTitle,
-      description: merged.aboutContent || merged.description || `${merged.name} is dedicated to providing exceptional ${merged.businessType} services.`,
+      description: decodeHTMLEntities(aboutText),
       image: merged.galleryImages?.[0] || undefined,
     };
   }
@@ -638,13 +738,88 @@ JSON:`;
   }
 
   private generateServices(merged: MergedData, config: any): BusinessData['services'] {
-    const serviceNames = merged.services.length > 0 ? merged.services : config.defaultServices;
-    const items = serviceNames.slice(0, 6).map((s: string, i: number) => ({
-      title: s,
-      description: `Professional ${s.toLowerCase()} solutions tailored to your needs.`,
-      image: merged.galleryImages?.[i] || undefined,
-    }));
-    return { title: config.servicesTitle, items };
+    // For e-commerce, use features as services (same data) without images
+    const isEcommerce = merged.businessType === 'ecommerce';
+    
+    // For fitness/gym, if products exist (membership packages), incorporate them as services
+    const isFitness = merged.businessType === 'fitness';
+    
+    let serviceNames: string[];
+    if (isEcommerce) {
+      serviceNames = merged.features.length > 0 ? merged.features : config.defaultFeatures;
+    } else if (isFitness && merged.products.length > 0) {
+      // Use product names as service/membership options
+      serviceNames = merged.products.map(p => p.name);
+      console.log('[generateServices] Using products as fitness services/memberships:', serviceNames);
+    } else {
+      serviceNames = merged.services.length > 0 ? merged.services : config.defaultServices;
+    }
+    
+    const items = serviceNames.slice(0, 6).map((s: string, i: number) => {
+      let description: string;
+      let price: string | undefined;
+      
+      if (isFitness && merged.products[i]) {
+        // Use product description and price for fitness memberships
+        description = merged.products[i].description || `${s} membership with full access to our facilities and programs.`;
+        price = merged.products[i].price ? `$${merged.products[i].price}` : undefined;
+      } else if (isEcommerce) {
+        description = `We provide ${s.toLowerCase()} to ensure the best shopping experience.`;
+      } else {
+        description = `Professional ${s.toLowerCase()} solutions tailored to your needs.`;
+      }
+      
+      return {
+        title: s,
+        description,
+        price,
+        // Never attach images for e-commerce services
+        image: isEcommerce ? undefined : (merged.galleryImages?.[i] || undefined),
+      };
+    });
+    
+    return { 
+      title: isEcommerce ? 'Why Shop With Us' : config.servicesTitle, 
+      subtitle: isEcommerce ? 'Benefits and features of shopping with us' : undefined,
+      items 
+    };
+  }
+
+  private generateProducts(merged: MergedData): BusinessData['products'] | undefined {
+    // Service-oriented businesses should NOT show products section
+    // Their "products" (membership packages, appointments, etc.) are services
+    const serviceBusinessTypes: BusinessType[] = ['fitness', 'healthcare', 'beauty', 'restaurant', 'agency', 'education', 'realestate', 'service', 'portfolio', 'startup'];
+    
+    if (serviceBusinessTypes.includes(merged.businessType)) {
+      console.log(`[generateProducts] Skipping products for ${merged.businessType} business`);
+      return undefined;
+    }
+
+    // Only generate products section for ecommerce
+    if (merged.businessType !== 'ecommerce') {
+      return undefined;
+    }
+
+    // If we have products from scraping/user input, use them
+    if (merged.products.length > 0) {
+      const items = merged.products.map((product, i) => ({
+        name: product.name,
+        description: product.description || undefined,
+        price: product.price || undefined,
+        salePrice: product.salePrice || undefined,
+        image: product.image || merged.galleryImages?.[i] || undefined,
+        category: product.category || undefined,
+      }));
+      
+      return {
+        title: 'Featured Products',
+        subtitle: 'Discover our curated collection',
+        items,
+      };
+    }
+
+    // For ecommerce without products, return undefined (will be empty)
+    return undefined;
   }
 
   private generateTestimonials(merged: MergedData, config: any): BusinessData['testimonials'] {

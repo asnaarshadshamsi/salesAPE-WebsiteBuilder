@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/Input";
 import { ComponentProps } from "react";
 
 interface FormInputProps extends ComponentProps<typeof Input> {

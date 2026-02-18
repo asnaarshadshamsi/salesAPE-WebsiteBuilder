@@ -1,0 +1,182 @@
+﻿===================================================================
+BUSINESS TYPE DETECTION & TEMPLATE FIX
+===================================================================
+Date: 2026-02-18 15:26
+
+ISSUE REPORTED:
+- Website: https://fitnation.com.pk/ (gym membership website)
+- Problem: Detected as E-commerce instead of Fitness
+- Result: Getting shopping/ecommerce template instead of gym template
+- Impact: Membership packages displayed as products to buy
+
+ROOT CAUSES:
+============
+
+1. PREMATURE ECOMMERCE CLASSIFICATION
+   Location: enhanced-scraper.service.ts::detectBusinessType()
+   Problem: If productCount >= 3, immediately returned 'ecommerce'
+   Impact: Gym membership packages detected as "products" → forced ecommerce
+
+2. WEAK FITNESS DETECTION
+   Problem: Generic keywords only (gym, fitness, workout)
+   Impact: Missing gym-specific terms like "membership", "join now", "training"
+
+3. PRODUCTS SHOWN FOR ALL BUSINESS TYPES
+   Location: template-field-generator.service.ts::generateProducts()
+   Problem: Showed products section if products.length > 0 regardless of type
+   Impact: Fitness memberships displayed in shopping cart format
+
+4. SERVICES NOT USING MEMBERSHIP DATA
+   Location: template-field-generator.service.ts::generateServices()
+   Problem: Ignored product data for fitness businesses
+   Impact: Membership packages not incorporated into services section
+
+FIXES IMPLEMENTED:
+==================
+
+✅ 1. ENHANCED BUSINESS TYPE DETECTION
+File: enhanced-scraper.service.ts (lines 1083-1180)
+
+A. Expanded Fitness Keywords:
+   - Added: gym membership, fitness center, health club, athletic
+   - Added: personal trainer, nutrition coaching, weight loss
+   - Added: cardio, strength, weightlifting, bodybuilding
+   - Added: pilates, zumba, aerobics, spin class, hiit, bootcamp
+   - Added: join now, free trial, get fit
+
+B. Prioritized Detection Logic:
+   OLD: productCount >= 3 → instant ecommerce
+   NEW: Check fitness signals FIRST before products
+
+C. Smart Scoring System:
+   - fitnessScore >= 4 → Always fitness (even with products)
+   - Product count + ecommerceScore >= 3 → Ecommerce
+   - Fitness as top scorer (score >= 2) → Fitness
+   - Service types prioritized over generic ecommerce
+
+D. Improved Ecommerce Detection:
+   - Requires STRONG shopping signals not just products
+   - Keywords: shopping cart, add to cart, checkout, my cart
+   - Added: view cart, wishlist, size chart, in stock
+
+✅ 2. EXCLUDED PRODUCTS FOR SERVICE BUSINESSES
+File: template-field-generator.service.ts (lines 787-820)
+
+Service business types that NEVER show products:
+- fitness, healthcare, beauty, restaurant
+- agency, education, realestate, service
+- portfolio, startup
+
+Only E-commerce shows products section now.
+
+✅ 3. MEMBERSHIP PACKAGES AS SERVICES
+File: template-field-generator.service.ts (lines 762-800)
+
+For fitness businesses:
+- Products (memberships) → Services section
+- Includes membership name, description, price
+- Example: "Premium Membership - /month"
+
+✅ 4. BUSINESS-SPECIFIC AI PROMPTS
+File: template-field-generator.service.ts (lines 167-179, 193)
+
+Added context for LLM:
+- Fitness: "Memberships are SERVICES not products"
+- Fitness: Use CTAs like "Start Training", "Join Now"
+- Fitness: Focus on transformation, results, community
+- E-commerce: Include products section
+- Service types: No products section
+
+✅ 5. DETAILED LOGGING
+Added console logs for debugging:
+- [detectBusinessType] Scores: { fitness: 12, ecommerce: 2 }
+- [detectBusinessType] Strong fitness signals (12), marking as fitness
+- [generateProducts] Skipping products for fitness business
+- [generateServices] Using products as fitness services/memberships
+
+TESTING:
+========
+
+1. Test Fitness Detection:
+   URL: https://fitnation.com.pk/
+   Expected Console Output:
+   `
+   [detectBusinessType] Scores: { fitness: X, ... }
+   [detectBusinessType] Strong fitness signals (X), marking as fitness
+   [generateProducts] Skipping products for fitness business
+   [generateServices] Using products as fitness services/memberships: [...]
+   `
+
+2. Expected Template:
+   - Hero: "Transform Your Life" style
+   - Services: Membership packages with prices
+   - Features: "Expert Trainers", "State-of-the-Art Equipment"
+   - NO Products section
+   - CTAs: "Start Training", "Get Started Today"
+
+3. E-commerce Should Still Work:
+   URL: Any online store
+   Expected: Products section, shopping CTAs
+
+BUSINESS TYPE PRIORITY LOGIC:
+==============================
+
+1. Check for strong fitness signals (score >= 4)
+   → Fitness (ignores product count)
+
+2. Check products + strong ecommerce signals
+   → E-commerce
+
+3. Check if fitness is top scorer (score >= 2)
+   → Fitness
+
+4. Check products + top type with good score
+   → Use that type (not ecommerce)
+
+5. Products + weak signals
+   → E-commerce (fallback)
+
+6. Top scorer >= 2
+   → Use that type
+
+7. No strong signals
+   → Service (default)
+
+KEYWORDS COMPARISON:
+====================
+
+BEFORE (Fitness):
+gym, fitness, workout, training, exercise, yoga,
+personal trainer, membership, crossfit (9 keywords)
+
+AFTER (Fitness):
+fitness, gym, workout, training, exercise, yoga,
+personal trainer, membership, crossfit, cardio,
+strength, weightlifting, bodybuilding, pilates,
+zumba, aerobics, spin class, hiit, bootcamp,
+fitness center, health club, athletic, muscle,
+nutrition coaching, weight loss, get fit, join now,
+free trial, gym membership (29 keywords)
+
+BEFORE (E-commerce):
+shop, store, cart, checkout, buy now, add to cart,
+product, ecommerce, shipping, order (10 keywords)
+
+AFTER (E-commerce):
+shopping cart, add to cart, checkout, my cart,
+view cart, ecommerce, e-commerce, online store,
+free shipping, product catalog, size chart,
+in stock, out of stock, wishlist, compare products
+(15 specific keywords - generic ones removed)
+
+FILES MODIFIED:
+===============
+1. src/services/scraper/enhanced-scraper.service.ts
+   - detectBusinessType() function (lines 1083-1180)
+
+2. src/services/ai/template-field-generator.service.ts
+   - buildLLMPrompt() (lines 167-193)
+   - generateServices() (lines 762-800)  
+   - generateProducts() (lines 787-820)
+
+===================================================================

@@ -47,7 +47,7 @@ export interface CohereResponse {
 /**
  * Call Cohere's Generate API
  */
-async function cohereGenerate(
+export async function cohereGenerate(
   prompt: string,
   options: {
     maxTokens?: number;

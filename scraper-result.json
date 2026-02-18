@@ -1,0 +1,417 @@
+﻿{
+    "success":  true,
+    "duration":  "5.00s",
+    "basicInfo":  {
+                      "name":  "Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan",
+                      "description":  "Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.",
+                      "businessType":  "ecommerce",
+                      "confidence":  "high"
+                  },
+    "branding":  {
+                     "hasLogo":  true,
+                     "logoUrl":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=130",
+                     "hasHeroImage":  true,
+                     "heroImageUrl":  "http://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363",
+                     "primaryColor":  "#e10600",
+                     "secondaryColor":  "#3dbb18",
+                     "galleryImagesCount":  5
+                 },
+    "contact":  {
+                    "phone":  "5207670760",
+                    "email":  "sales@asimjofa.com",
+                    "address":  null,
+                    "city":  null,
+                    "socialLinks":  {
+                                        "instagram":  "https://www.instagram.com/asimjofa",
+                                        "facebook":  "https://www.facebook.com/asimjofaofficial",
+                                        "twitter":  "https://twitter.com/AsimJofa",
+                                        "linkedin":  "https://www.linkedin.com/company/asim-jofa",
+                                        "youtube":  "https://www.youtube.com/user",
+                                        "tiktok":  "http://tiktok.com/@asimjofa"
+                                    }
+                },
+    "content":  {
+                    "servicesCount":  0,
+                    "services":  [
+
+                                 ],
+                    "featuresCount":  0,
+                    "features":  [
+
+                                 ],
+                    "productsCount":  50,
+                    "products":  [
+                                     {
+                                         "name":  "AJPB-306 Embroidered Raw Silk Stitched 2pcs",
+                                         "price":  4,
+                                         "hasImage":  false
+                                     },
+                                     {
+                                         "name":  "AJPB-264 Embroidered Jacquard Stitched 2pcs",
+                                         "price":  4,
+                                         "hasImage":  false
+                                     },
+                                     {
+                                         "name":  "AJPB-265 Embroidered Jacquard Stitched 2pcs",
+                                         "price":  4,
+                                         "hasImage":  false
+                                     },
+                                     {
+                                         "name":  "AJPB-263 Embroidered Dobby Stitched 2pcs",
+                                         "price":  4,
+                                         "hasImage":  false
+                                     },
+                                     {
+                                         "name":  "AJPB-266 Embroidered Dobby Stitched 2pcs",
+                                         "price":  4,
+                                         "hasImage":  false
+                                     }
+                                 ],
+                    "testimonialsCount":  0,
+                    "testimonials":  [
+
+                                     ]
+                },
+    "images":  {
+                   "totalCount":  14,
+                   "byType":  {
+                                  "hero":  3,
+                                  "logo":  5,
+                                  "product":  3,
+                                  "background":  3
+                              }
+               },
+    "rawTextPreview":  "Title: Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan\nMeta Description: Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.\n\nHeadings:\n# Asim Jofa\n## DAILY NEW IN\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB",
+    "fullData":  {
+                     "name":  "Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan",
+                     "description":  "Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.",
+                     "logo":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=130",
+                     "heroImage":  "http://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363",
+                     "galleryImages":  [
+                                           "https://asimjofa.com/cdn/shop/files/266-307-Mobile-Banner_jpg.jpg?v=1771323527\u0026width=1500",
+                                           "https://asimjofa.com/cdn/shop/files/266-307-Dextop-Banner_jpg.jpg?v=1771323523\u0026width=1500",
+                                           "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/appstore_icon_8a92f32e-99d0-43bf-b6c7-7f9c581a9407.png?v=1718110316",
+                                           "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/googleplay_icon_f20908b9-d50f-4807-b736-a32e1a1c8649.png?v=1718110343",
+                                           "https://cdn.shopify.com/s/assets/payment_icons/generic-dfdcaf09b6731ca14dd7441354c0ad8bc934184eb15ae1fda6a6b9e307675485.svg"
+                                       ],
+                     "primaryColor":  "#e10600",
+                     "secondaryColor":  "#3dbb18",
+                     "businessType":  "ecommerce",
+                     "services":  [
+
+                                  ],
+                     "features":  [
+
+                                  ],
+                     "products":  [
+                                      {
+                                          "name":  "AJPB-306 Embroidered Raw Silk Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJPB-264 Embroidered Jacquard Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJPB-265 Embroidered Jacquard Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJPB-263 Embroidered Dobby Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJPB-266 Embroidered Dobby Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJPB-307 Embroidered Dobby Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJPB-186 Embroidered Cambric Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJUBM-07 UNSTITCHED EGYPTIAN COTTON 2PC",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-07 Embroidered Silk Unstitched 2 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-01 Embroidered Net Unstitched 2 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-03 Embroidered Charmeuse Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-02 Embroidered Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-06 Embroidered Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-09 Embroidered Net Unstitched 2 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-08 Embroidered Organza Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULFI-04 Embroidered Chiffon Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-02 Embroidered Poly Silk Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-01 Embroidered Poly Silk Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-05 Embroidered Poly Silk Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-04 Embroidered Poly Silk Stitched 2pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-03 Embroidered Poly Net Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-07 Embroidered Poly Net Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-06 Embroidered Poly Silk Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJLPN-08 Embroidered Poly Net Stitched 3pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-03 Embroidered Charmeuse Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-05 Embroidered Charmeuse Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-01 Embroidered Charmeuse Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-02 Embroidered Charmeuse Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-06 Embroidered Charmeuse Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-08 Embroidered Raw Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-07 Embroidered Raw Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULSC-04 Embroidered Crepe Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-21 Embroidered Chiffon Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-05 Embroidered Javeria Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-12 Embroidered Zari Check Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-08 Embroidered Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-04 Embroidered Chiffon Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-11 Embroidered Two Toned Cotton Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-06 Embroidered Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULN-15 Embroidered Zari Tissue Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-08 Embroidered Spun Raw Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-01 Embroidered Chiffon Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-05 Embroidered Boski Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-02 Embroidered Boski Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-10 Embroidered Poly Net Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-09 Embroidered Raw Silk Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-06 Embroidered Chiffon Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULD-12 Embroidered Chiffon Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULK-08 Embroidered Rod Unstitched 3 Pcs",
+                                          "price":  4
+                                      },
+                                      {
+                                          "name":  "AJULK-04 Embroidered Rod Unstitched 3 Pcs",
+                                          "price":  4
+                                      }
+                                  ],
+                     "phone":  "5207670760",
+                     "email":  "sales@asimjofa.com",
+                     "address":  null,
+                     "city":  null,
+                     "socialLinks":  {
+                                         "instagram":  "https://www.instagram.com/asimjofa",
+                                         "facebook":  "https://www.facebook.com/asimjofaofficial",
+                                         "twitter":  "https://twitter.com/AsimJofa",
+                                         "linkedin":  "https://www.linkedin.com/company/asim-jofa",
+                                         "youtube":  "https://www.youtube.com/user",
+                                         "tiktok":  "http://tiktok.com/@asimjofa"
+                                     },
+                     "aboutContent":  "",
+                     "testimonials":  [
+
+                                      ],
+                     "confidence":  "high",
+                     "sourceType":  "website",
+                     "scrapedAt":  "2026-02-18T08:49:54.788Z",
+                     "rawText":  "Title: Asim Jofa | Luxury Designer Clothing \u0026 Fashion Brand in Pakistan\nMeta Description: Official online store of Asim Jofa. Shop luxury designer dresses, clothes \u0026amp; suits for women and men in Pakistan. Explore signature fashion, buy online at the best price.\n\nHeadings:\n# Asim Jofa\n## DAILY NEW IN\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJUBM-07 UNSTITCHED EGYPTIAN COTTON 2PC\n# EID SEASON\n## SHOP BY COLLECTIONS\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJULW-07 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-03 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-11 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-10 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-04 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-12 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-01 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-02 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULFI-07 Embroidered Silk Unstitched 2 Pcs\n### AJULFI-01 Embroidered Net Unstitched 2 Pcs\n### AJULFI-03 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULFI-02 Embroidered Net Unstitched 3 Pcs\n### AJULFI-06 Embroidered Net Unstitched 3 Pcs\n### AJULFI-09 Embroidered Net Unstitched 2 Pcs\n### AJULFI-08 Embroidered Organza Unstitched 3 Pcs\n### AJULFI-04 Embroidered Chiffon Unstitched 3 Pcs\n### AJLPN-02 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-01 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-05 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-04 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-03 Embroidered Poly Net Stitched 3pcs\n### AJLPN-07 Embroidered Poly Net Stitched 3pcs\n### AJLPN-06 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-08 Embroidered Poly Net Stitched 3pcs\n### AJULSC-03 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-05 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-01 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-02 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-06 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULSC-08 Embroidered Raw Silk Unstitched 3 Pcs\n### AJULSC-07 Embroidered Raw Silk Unstitched 3 Pcs\n### AJULSC-04 Embroidered Crepe Silk Unstitched 3 Pcs\n### AJULN-21 Embroidered Chiffon Unstitched 3 Pcs\n### AJULN-05 Embroidered Javeria Net Unstitched 3 Pcs\n### AJULN-12 Embroidered Zari Check Net Unstitched 3 Pcs\n### AJULN-08 Embroidered Net Unstitched 3 Pcs\n### AJULN-04 Embroidered Chiffon Unstitched 3 Pcs\n### AJULN-11 Embroidered Two Toned Cotton Silk Unstitched 3 Pcs\n### AJULN-06 Embroidered Silk Unstitched 3 Pcs\n### AJULN-15 Embroidered Zari Tissue Net Unstitched 3 Pcs\n### AJULD-08 Embroidered Spun Raw Silk Unstitched 3 Pcs\n### AJULD-01 Embroidered Chiffon Unstitched 3 Pcs\n### AJULD-05 Embroidered Boski Silk Unstitched 3 Pcs\n### AJULD-02 Embroidered Boski Silk Unstitched 3 Pcs\n### AJULD-10 Embroidered Poly Net Unstitched 3 Pcs\n### AJULD-09 Embroidered Raw Silk Unstitched 3 Pcs\n### AJULD-06 Embroidered Chiffon Unstitched 3 Pcs\n### AJULD-12 Embroidered Chiffon Unstitched 3 Pcs\n### AJULK-08 Embroidered Rod Unstitched 3 Pcs\n### AJULK-04 Embroidered Rod Unstitched 3 Pcs\n### AJULK-01 Embroidered Herringbone Unstitched 3 Pcs\n### AJULK-02 Embroidered Rod Unstitched 3 Pcs\n### AJULK-03 Embroidered Rod Unstitched 3 Pcs\n### AJULK-05 Embroidered Rod Unstitched 3 Pcs\n### AJULK-07 Embroidered Rod Unstitched 3 Pcs\n### AJULK-06 Embroidered Rod Unstitched 3 Pcs\n### CONTACT US\n### CONTACT US\n### CUSTOMER CARE\n### CUSTOMER CARE\n### INFORMATION\n### INFORMATION\n### POLICIES\n### POLICIES\n### NEWSLETTER SIGNUP\n### NEWSLETTER SIGNUP\n# DAILY NEW IN\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJUBM-07 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-10 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-04 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-06 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-08 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-02 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-09 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-01 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-03 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJUBM-05 UNSTITCHED EGYPTIAN COTTON 2PC\n### AJULDD-02 Embroidered Boski Silk Stitched 3 Pcs\n### AJULW-12 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-08 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-11 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-03 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-05 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-10 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-09 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-07 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-01 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-04 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-06 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULW-02 Embroidered Lawn Unstitched 3 Pcs EID Edit\n### AJULFI-09 Embroidered Net Unstitched 2 Pcs\n### AJULFI-08 Embroidered Organza Unstitched 3 Pcs\n### AJULFI-04 Embroidered Chiffon Unstitched 3 Pcs\n### AJULFI-07 Embroidered Silk Unstitched 2 Pcs\n### AJULFI-06 Embroidered Net Unstitched 3 Pcs\n### AJULFI-05 Embroidered Chiffon Unstitched 3 Pcs\n### AJULFI-01 Embroidered Net Unstitched 2 Pcs\n### AJULFI-03 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### AJULFI-02 Embroidered Net Unstitched 3 Pcs\n### AJLPN-07 Embroidered Poly Net Stitched 3pcs\n### AJLPN-09 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-03 Embroidered Poly Net Stitched 3pcs\n### AJLPN-06 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-05 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-02 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-08 Embroidered Poly Net Stitched 3pcs\n### AJLPN-01 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-10 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-04 Embroidered Poly Silk Stitched 2pcs\n### AJULSC-01 Embroidered Charmeuse Silk Unstitched 3 Pcs\n### CONTACT US\n### CONTACT US\n### CUSTOMER CARE\n### CUSTOMER CARE\n### INFORMATION\n### INFORMATION\n### POLICIES\n### POLICIES\n### NEWSLETTER SIGNUP\n### NEWSLETTER SIGNUP\n# Ready To Wear\n### AJPB-186 Embroidered Cambric Stitched 2pcs\n### AJPB-307 Embroidered Dobby Stitched 2pcs\n### AJPB-266 Embroidered Dobby Stitched 2pcs\n### AJPB-263 Embroidered Dobby Stitched 2pcs\n### AJPB-265 Embroidered Jacquard Stitched 2pcs\n### AJPB-264 Embroidered Jacquard Stitched 2pcs\n### AJPB-306 Embroidered Raw Silk Stitched 2pcs\n### AJULW-12 Embroidered Lawn Stitched 3 Pcs\n### AJULW-11 Embroidered Lawn Stitched 3 Pcs\n### AJULW-10 Embroidered Lawn Stitched 3 Pcs\n### AJULW-09 Embroidered Lawn Stitched 3 Pcs\n### AJULW-08 Embroidered Lawn Stitched 3 Pcs\n### AJULW-07 Embroidered Lawn Stitched 3 Pcs\n### AJULW-06 Embroidered Lawn Stitched 3 Pcs\n### AJULW-05 Embroidered Lawn Stitched 3 Pcs\n### AJULW-04 Embroidered Lawn Stitched 3 Pcs\n### AJULW-03 Embroidered Lawn Stitched 3 Pcs\n### AJULW-02 Embroidered Lawn Stitched 3 Pcs\n### AJULW-01 Embroidered Lawn Stitched 3 Pcs\n### AJLPN-10 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-09 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-08 Embroidered Poly Net Stitched 3pcs\n### AJLPN-07 Embroidered Poly Net Stitched 3pcs\n### AJLPN-06 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-05 Embroidered Poly Silk Stitched 3pcs\n### AJLPN-04 Embroidered Poly Silk Stitched 2pcs\n### AJLPN-03",
+                     "scrapedImages":  [
+                                           {
+                                               "url":  "http://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363",
+                                               "alt":  "og:image",
+                                               "type":  "hero"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=130",
+                                               "alt":  "Asim Jofa",
+                                               "width":  130,
+                                               "height":  65,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363\u0026width=90",
+                                               "alt":  "Asim Jofa",
+                                               "width":  90,
+                                               "height":  43,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/white_logo_1_eec32ea7-eab4-4bbf-86e0-6d72e4dbd7d5.png?v=1767104513\u0026width=95",
+                                               "alt":  "Asim Jofa",
+                                               "width":  95,
+                                               "height":  48,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Mobile-Banner_jpg.jpg?v=1771323527\u0026width=1500",
+                                               "alt":  "",
+                                               "width":  375,
+                                               "height":  1500,
+                                               "type":  "hero"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Dextop-Banner_jpg.jpg?v=1771323523\u0026width=1500",
+                                               "alt":  "",
+                                               "width":  375,
+                                               "height":  1120,
+                                               "type":  "hero"
+                                           },
+                                           {
+                                               "url":  "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/appstore_icon_8a92f32e-99d0-43bf-b6c7-7f9c581a9407.png?v=1718110316",
+                                               "alt":  "asim jofa ios",
+                                               "width":  100,
+                                               "type":  "product"
+                                           },
+                                           {
+                                               "url":  "https://cdn.shopify.com/s/files/1/0576/9268/4376/files/googleplay_icon_f20908b9-d50f-4807-b736-a32e1a1c8649.png?v=1718110343",
+                                               "alt":  "asim jofa android",
+                                               "width":  100,
+                                               "type":  "product"
+                                           },
+                                           {
+                                               "url":  "https://cdn.shopify.com/s/assets/payment_icons/generic-dfdcaf09b6731ca14dd7441354c0ad8bc934184eb15ae1fda6a6b9e307675485.svg",
+                                               "alt":  "master",
+                                               "type":  "product"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363\u0026width=100",
+                                               "alt":  "Asim Jofa",
+                                               "width":  100,
+                                               "height":  48,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/Asim_Jofa_8c4bc4c9-86dd-4be4-b0c0-cb93ba1352c4.png?v=1675238363\u0026width=95",
+                                               "alt":  "Asim Jofa",
+                                               "width":  95,
+                                               "height":  45,
+                                               "type":  "logo"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Mobile-Banner_jpg.jpg?v=1771323527\u0026width=1",
+                                               "alt":  "",
+                                               "type":  "background"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/266-307-Dextop-Banner_jpg.jpg?v=1771323523\u0026width=1",
+                                               "alt":  "",
+                                               "type":  "background"
+                                           },
+                                           {
+                                               "url":  "https://asimjofa.com/cdn/shop/files/BEST-SELLERS-SHOP-NOW_4ee4fe6d-ad8f-48b5-9edf-6b70a0cb022f.gif?v=1768548695\u0026width=1",
+                                               "alt":  "",
+                                               "type":  "background"
+                                           }
+                                       ]
+                 }
+}

@@ -306,6 +306,8 @@ JSON output:`;
         primaryCTA: 'Start Your Project',
         tagline: 'Creative Solutions, Real Results',
         metaDescSuffix: 'Comprehensive creative and digital marketing services.',
+        bookingTitle: 'Book a Strategy Session',
+        bookingSubtitle: 'Transform your brand with our expert team. Schedule a strategy session to discuss your goals and explore creative solutions.',
       },
       ecommerce: {
         headlines: [
@@ -346,6 +348,8 @@ JSON output:`;
         primaryCTA: 'Shop Now',
         tagline: 'Quality You Can Trust',
         metaDescSuffix: 'Shop premium products with fast shipping and easy returns.',
+        bookingTitle: 'Book a Personal Consultation',
+        bookingSubtitle: 'Get personalized recommendations and expert advice. Schedule a consultation to find the perfect products for your needs.',
       },
       restaurant: {
         headlines: [
@@ -386,6 +390,8 @@ JSON output:`;
         primaryCTA: 'Reserve a Table',
         tagline: 'Taste the Difference',
         metaDescSuffix: 'Fresh ingredients, authentic recipes, and exceptional dining.',
+        bookingTitle: 'Reserve Your Table',
+        bookingSubtitle: 'Secure your spot for an unforgettable dining experience. Book your table now and let us prepare something special for you.',
       },
       fitness: {
         headlines: [
@@ -426,6 +432,8 @@ JSON output:`;
         primaryCTA: 'Start Training',
         tagline: 'Get Fit, Stay Strong',
         metaDescSuffix: 'Professional training programs for all fitness levels.',
+        bookingTitle: 'Schedule Your First Session',
+        bookingSubtitle: 'Start your fitness journey today. Book a complimentary consultation with our expert trainers to create your personalized plan.',
       },
       healthcare: {
         headlines: [
@@ -437,6 +445,9 @@ JSON output:`;
           'Experienced professionals • Modern facilities • Patient-centered care',
           'Providing compassionate healthcare for you and your family',
         ],
+        bookingTitle: 'Book Your Appointment',
+        bookingSubtitle: 'Access quality healthcare when you need it. Schedule your appointment with our experienced medical professionals today.',
+        bookingCTA: 'Book Appointment',
         defaultServices: [
           'General Consultations',
           'Preventive Care',
@@ -477,6 +488,9 @@ JSON output:`;
           'Expert stylists • Premium products • Relaxing atmosphere',
           'Treat yourself to luxury and rejuvenation',
         ],
+        bookingTitle: 'Book Your Beauty Treatment',
+        bookingSubtitle: 'Treat yourself to professional beauty services. Reserve your appointment and experience luxury and relaxation.',
+        bookingCTA: 'Book Appointment',
         defaultServices: [
           'Hair Styling',
           'Color Services',
@@ -517,6 +531,9 @@ JSON output:`;
           'Experienced professionals • Reliable service • Customer satisfaction guaranteed',
           'Delivering excellence in every project',
         ],
+        bookingTitle: 'Schedule a Consultation',
+        bookingSubtitle: "Let's discuss your project. Book a free consultation with our experts to explore how we can help achieve your goals.",
+        bookingCTA: 'Book Consultation',
         defaultServices: [
           'Consultation',
           'Project Planning',
@@ -586,6 +603,8 @@ JSON output:`;
         primaryCTA: 'View Portfolio',
         tagline: 'Crafting Digital Excellence',
         metaDescSuffix: 'Creative professional delivering innovative solutions.',
+        bookingTitle: 'Schedule a Discovery Call',
+        bookingSubtitle: 'Ready to start your project? Book a consultation to discuss your vision and how we can bring it to life.',
       },
       realestate: {
         headlines: [
@@ -626,6 +645,8 @@ JSON output:`;
         primaryCTA: 'Browse Properties',
         tagline: 'Your Journey Home Starts Here',
         metaDescSuffix: 'Expert real estate services for buyers and sellers.',
+        bookingTitle: 'Schedule a Property Viewing',
+        bookingSubtitle: 'Find your dream property. Book a viewing or consultation with our experienced real estate professionals today.',
       },
       education: {
         headlines: [
@@ -666,6 +687,8 @@ JSON output:`;
         primaryCTA: 'Enroll Now',
         tagline: 'Invest in Your Future',
         metaDescSuffix: 'Quality education and training for success.',
+        bookingTitle: 'Schedule a Campus Tour',
+        bookingSubtitle: 'Discover our programs and facilities. Book a campus tour or consultation to learn how we can help you achieve your educational goals.',
       },
       startup: {
         headlines: [

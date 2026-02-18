@@ -1,7 +1,13 @@
 "use client";
 
+import React, { useMemo } from "react";
+import DynamicSiteRenderer from "@/components/DynamicSiteRenderer";
 import LandingTemplate from "@/components/template/components/landing/LandingTemplate";
 import type { BusinessData } from "@/components/template/types/landing";
+import type { DesignSystem } from "@/services/design-system-resolver.service";
+import { designSystemGenerator } from "@/services/ai/design-system-generator.service";
+import { colorExtractorService } from "@/services/ai/color-extractor.service";
+import { resolveDesignSystem } from "@/services/design-system-resolver.service";
 
 interface Product {
   id: string;
@@ -155,6 +161,21 @@ function toBusinessData(props: SiteTemplateProps): BusinessData {
             items: serviceItems,
           }
         : undefined,
+    products:
+      products.length > 0
+        ? {
+            title: "Our Products",
+            items: products.map((p) => ({
+              id: p.id,
+              name: p.name,
+              description: p.description || "",
+              price: p.price || 0,
+              salePrice: p.salePrice || undefined,
+              image: p.image || undefined,
+              category: p.category || undefined,
+            })),
+          }
+        : undefined,
     testimonials:
       testimonialItems.length > 0
         ? {
@@ -162,6 +183,7 @@ function toBusinessData(props: SiteTemplateProps): BusinessData {
             items: testimonialItems,
           }
         : undefined,
+    galleryImages: business.galleryImages || [],
     cta: {
       title: "Ready to get started?",
       description: `Get in touch with ${business.name} today.`,
@@ -180,7 +202,56 @@ function toBusinessData(props: SiteTemplateProps): BusinessData {
 }
 
 // Main SiteTemplate component
-export function SiteTemplate(props: SiteTemplateProps) {
+export function SiteTemplate(props: SiteTemplateProps): React.ReactElement {
   const data = toBusinessData(props);
+
+  // Generate design system from business colors
+  const design = useMemo(() => {
+    const colorPalette = colorExtractorService.generateAccessiblePalette(
+      props.business.primaryColor || "#000000",
+      "minimal"
+    );
+
+    // Create minimal brand analysis for design system generation
+    const brandAnalysis = {
+      tone: "minimal" as const,
+      personality: ["clean", "professional"],
+      visualStyle: {
+        preferredLayout: "balanced" as const,
+        imageUsage: "minimal" as const,
+        textDensity: "balanced" as const,
+      },
+      targetAudience: "General",
+      emotionalAppeal: ["trust", "clarity"],
+    };
+
+    const rawDesign = designSystemGenerator.generateDesignSystem(
+      brandAnalysis,
+      colorPalette
+    );
+
+    return resolveDesignSystem(rawDesign);
+  }, [props.business.primaryColor]);
+
+  // Use DynamicSiteRenderer if we have rich product/service data
+  const hasRichContent = props.products.length > 0 || props.site.serviceDescriptions?.length || props.site.features.length;
+
+  console.log('[SiteTemplate] hasRichContent:', hasRichContent, {
+    products: props.products.length,
+    serviceDescriptions: props.site.serviceDescriptions?.length || 0,
+    features: props.site.features.length,
+  });
+
+  if (props.products.length > 0) {
+    console.log('[SiteTemplate] Sample product:', props.products[0]);
+  }
+
+  if (hasRichContent) {
+    return (
+      <DynamicSiteRenderer data={data} design={design} metadata={{ brandTone: "minimal" }} />
+    );
+  }
+
+  // Fallback to LandingTemplate for simpler sites
   return <LandingTemplate data={data} />;
 }

@@ -1,0 +1,107 @@
+﻿===================================================================
+SCRAPER COLOR & IMAGE EXTRACTION FIXES
+===================================================================
+Date: 2026-02-18 15:14
+
+ISSUE REPORTED:
+- Website: https://mfit.com.pk
+- Expected colors: Black (#000000) and Yellow (#FFFF00)
+- Actual result: Blue and black
+- Images not extracting properly
+
+ROOT CAUSES IDENTIFIED:
+======================
+
+1. COLOR EXTRACTION - Dark Color Filtering
+   Problem: isVeryDark() function filtered out colors with luminance < 20%
+   Impact: Black (#000000) was being excluded as "too dark"
+   
+2. COLOR EXTRACTION - Brand Colors Ignored
+   Problem: No priority given to CSS variables, theme-color meta tags
+   Impact: Generic colors were picked over actual brand colors
+   
+3. COLOR EXTRACTION - Yellow Detection
+   Problem: Named color mapping incomplete
+   Impact: CSS named colors like "yellow" weren't normalized properly
+
+4. IMAGE EXTRACTION - Limited Attribute Support
+   Problem: Only checked src, data-src, data-lazy-src
+   Impact: Modern lazy-loading with srcset not supported
+
+FIXES IMPLEMENTED:
+==================
+
+✅ 1. Enhanced Color Extraction (enhanced-scraper.service.ts:890-970)
+   - Added brandColors array for high-priority color sources
+   - CSS variables (--primary, --brand, --accent) get +10 priority boost
+   - theme-color meta tag treated as brand color
+   - Button/CTA colors (.btn, .button, .cta) prioritized
+   - Removed dark color filtering for brand colors
+   - Brand colors now selected first, even if black/dark
+
+✅ 2. Improved isGrayscale Function (enhanced-scraper.service.ts:1040)
+   - Pure black (#000000) and white (#FFFFFF) exempt from grayscale check
+   - Allows black and white to be valid brand colors
+   
+✅ 3. Extended Named Color Support (enhanced-scraper.service.ts:990-1015)
+   - Added: black, white, gray, grey, silver, maroon, olive, lime, aqua, fuchsia
+   - Yellow and all web colors now properly normalized to hex
+
+✅ 4. Enhanced Image Extraction (enhanced-scraper.service.ts:100-165)
+   - Added srcset attribute support for lazy-loaded images
+   - Added detailed console logging for debugging
+   - Better error messages when images can't be resolved
+   - Logs total img tags found vs. valid images extracted
+
+✅ 5. Better Color Selection Logic
+   - Frequency counting still used, but brand colors weighted higher
+   - Logs top 5 colors, brand colors, and final selection
+   - Console output shows: Found colors, top 5, brand colors, selected primary/secondary
+
+TESTING INSTRUCTIONS:
+=====================
+
+1. Test Color Extraction:
+   - Visit /create page
+   - Enter URL: https://mfit.com.pk
+   - Check browser console for logs: "[extractColors] Selected: Primary=..."
+   - Expected: Primary=#000000 (black), Secondary=#FFFF00 (yellow)
+
+2. Test Image Extraction:
+   - Same URL as above
+   - Check console for: "[extractAllImages] Found X img tags, extracted Y valid images"
+   - Check if logo, hero image, and gallery images are populated
+
+3. Test Dynamic Theming:
+   - After site is generated, background should use extracted colors
+   - Black brand color should create light background with high contrast
+   - Yellow should appear as secondary/accent color
+
+EXAMPLE OUTPUT (Expected Console Logs):
+========================================
+
+[extractColors] Found 23 colors, top 5: ['#000000', '#ffff00', '#ffffff', '#f5f5f5', '#333333']
+[extractColors] Brand colors: ['#000000', '#ffff00']
+[extractColors] Selected: Primary=#000000, Secondary=#ffff00
+
+[extractAllImages] Starting image extraction...
+[extractAllImages] Found 47 img tags, extracted 23 valid images
+[extractAllImages] Added image: { url: 'https://mfit.com.pk/logo.png', type: 'logo' }
+[extractAllImages] Added image: { url: 'https://mfit.com.pk/hero.jpg', type: 'hero' }
+
+ADDITIONAL NOTES:
+=================
+- Dynamic theme provider now handles dark brand colors properly
+- Black primary color generates white/light background automatically
+- HTML entity decoding ensures special characters display correctly
+- All changes backward compatible with existing scraped data
+
+FILES MODIFIED:
+===============
+src/services/scraper/enhanced-scraper.service.ts
+  - extractColors() function (lines 890-970)
+  - isGrayscale() function (line 1040)
+  - normalizeToHex() function (lines 990-1015)
+  - extractAllImages() function (lines 100-165)
+
+===================================================================

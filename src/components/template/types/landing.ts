@@ -3,6 +3,9 @@ export interface BusinessData {
     name: string;
     logo?: string;
     tagline?: string;
+    businessType?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
   };
   hero: {
     headline: string;
@@ -50,12 +53,36 @@ export interface BusinessData {
       price?: string;
     }[];
   };
+  products?: {
+    title?: string;
+    subtitle?: string;
+    items: {
+      name: string;
+      description?: string;
+      price?: number;
+      salePrice?: number;
+      image?: string;
+      category?: string;
+    }[];
+  };
   cta?: {
     title: string;
     description?: string;
     buttonLabel: string;
     buttonHref: string;
   };
+  galleryImages?: string[];
+  contact?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    calendlyUrl?: string;
+  };
+  faq?: Array<{
+    question: string;
+    answer: string;
+  }>;
   footer?: {
     description?: string;
     links?: { label: string; href: string }[];

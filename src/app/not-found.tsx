@@ -4,9 +4,9 @@ import { Button } from "@/components/ui";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center px-4">
       <div className="text-center">
-        <div className="w-20 h-20 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-8">
+        <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-8">
           <Rocket className="w-10 h-10 text-white" />
         </div>
         <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
@@ -23,3 +23,4 @@ export default function NotFound() {
     </div>
   );
 }
+

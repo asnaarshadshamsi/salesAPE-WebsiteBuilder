@@ -5,11 +5,12 @@ import { BusinessData } from "../../types/landing";
 
 interface ServicesSectionProps {
   data: NonNullable<BusinessData["services"]>;
+  businessType?: string;
 }
 
-const ServicesSection = ({ data }: ServicesSectionProps) => {
-  // Check if any service has an image to determine card style
-  const hasAnyImage = data.items.some((s) => !!s.image);
+const ServicesSection = ({ data, businessType }: ServicesSectionProps) => {
+  // For e-commerce, never show images - just clean boxes
+  const showImages = businessType !== 'ecommerce' && data.items.some((s) => !!s.image);
 
   return (
     <section id="services" className="py-24 md:py-32 bg-muted/40">
@@ -35,9 +36,9 @@ const ServicesSection = ({ data }: ServicesSectionProps) => {
 
         <div
           className={`grid gap-8 ${
-            hasAnyImage
+            showImages
               ? "md:grid-cols-2 lg:grid-cols-3"
-              : "md:grid-cols-3"
+              : "md:grid-cols-2 lg:grid-cols-3"
           }`}
         >
           {data.items.map((service, i) => (
@@ -49,7 +50,7 @@ const ServicesSection = ({ data }: ServicesSectionProps) => {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className="group relative rounded-xl bg-card border border-border hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 overflow-hidden"
             >
-              {service.image && (
+              {showImages && service.image && (
                 <div className="aspect-video overflow-hidden">
                   <img
                     src={service.image}

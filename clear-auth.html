@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Auth Cookie</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #0a0a0a;
+            color: #fafafa;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #18181b;
+            border-radius: 1rem;
+            border: 1px solid #ec489930;
+            max-width: 400px;
+        }
+        button {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: #ec4899;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #db2777;
+        }
+        .success {
+            color: #4ade80;
+            margin-top: 1rem;
+        }
+        a {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #ec4899;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Clear Auth Cookie</h1>
+        <p>If you're experiencing redirect loops, click below to clear your authentication cookie.</p>
+        <button onclick="clearAuth()">Clear Auth Cookie</button>
+        <div id="message"></div>
+        <br>
+        <a href="/">← Back to Home</a>
+    </div>
+
+    <script>
+        function clearAuth() {
+            // Clear the auth-token cookie
+            document.cookie = 'auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            
+            // Also clear any other cookies
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf('=');
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            }
+            
+            document.getElementById('message').innerHTML = '<p class="success">✓ Auth cookie cleared! You can now <a href="/login">go to login</a> or <a href="/signup">sign up</a>.</p>';
+        }
+    </script>
+</body>
+</html>

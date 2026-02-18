@@ -306,8 +306,16 @@ export function OnboardingForm({ isLoggedIn }: OnboardingFormProps) {
               <label className="text-sm font-medium text-gray-300 mb-2 block">
                 Contact Info Found
               </label>
-              {analyzedData.phone && <p>📞 {analyzedData.phone}</p>}
-              {analyzedData.email && <p>✉️ {analyzedData.email}</p>}
+              {analyzedData.phone && (
+                <p>
+                  📞 <a href={`tel:${analyzedData.phone.replace(/[^\d+]/g, '')}`} className="hover:text-white transition-colors">{analyzedData.phone}</a>
+                </p>
+              )}
+              {analyzedData.email && (
+                <p>
+                  ✉️ <a href={`mailto:${analyzedData.email}`} className="hover:text-white transition-colors">{analyzedData.email}</a>
+                </p>
+              )}
               {analyzedData.address && <p>📍 {analyzedData.address}</p>}
             </div>
           )}

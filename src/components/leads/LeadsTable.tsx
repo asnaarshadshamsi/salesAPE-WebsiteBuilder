@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Mail, Phone, Calendar, ExternalLink, Star } from "lucide-react";
 import Link from "next/link";
 import { Lead } from "@/types";
