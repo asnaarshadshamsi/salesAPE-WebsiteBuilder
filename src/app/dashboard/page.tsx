@@ -12,8 +12,9 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
+  // Don't redirect here - let the middleware and layout handle it
   if (!user) {
-    redirect("/login");
+    return null; // Layout will handle the redirect
   }
 
   const businesses = await getUserBusinesses();

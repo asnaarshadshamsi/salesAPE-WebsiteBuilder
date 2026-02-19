@@ -29,10 +29,11 @@ function LoginForm() {
     const result = await signIn(formData);
 
     if (result.success) {
+      // Use window.location.href for a full page reload to ensure cookies are properly set
       if (continueOnboarding) {
-        router.push("/create");
+        window.location.href = "/create";
       } else {
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       }
     } else {
       setError(result.error || "Failed to sign in");
