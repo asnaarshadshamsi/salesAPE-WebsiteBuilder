@@ -181,17 +181,34 @@ export async function generateBusinessContent(
 async function generateHeadlineAndSubheadline(
   context: BusinessContext
 ): Promise<{ headline: string; subheadline: string; tagline: string } | null> {
-  const prompt = `You are an expert marketing copywriter. Generate a compelling headline, subheadline, and tagline for a ${context.businessType} business.
+  const prompt = `You are an expert marketing copywriter and business analyst. Analyze this business and generate compelling copy.
 
-Business Name: ${context.name}
-${context.description ? `Description: ${context.description}` : ''}
-${context.services?.length ? `Services: ${context.services.join(', ')}` : ''}
-${context.city ? `Location: ${context.city}` : ''}
+Business Analysis:
+- Name: ${context.name}
+- Type: ${context.businessType}
+${context.description ? `- Description: ${context.description}` : ''}
+${context.services?.length ? `- Services Offered: ${context.services.join(', ')}` : ''}
+${context.products?.length ? `- Products: ${context.products.slice(0, 5).map(p => p.name).join(', ')}` : ''}
+${context.city ? `- Location: ${context.city}` : ''}
+${context.industry ? `- Industry: ${context.industry}` : ''}
+
+CRITICAL INSTRUCTIONS:
+1. ANALYZE the business type and ensure your copy matches it:
+   - For perfume/beauty stores: Focus on luxury, elegance, fragrances, scents
+   - For e-commerce: Focus on shopping, products, collections
+   - For restaurants: Focus on food, dining, culinary experience
+   - For fitness: Focus on transformation, training, health goals
+   - For agencies: Focus on expertise, creativity, results
+   - For services: Focus on solutions, professional service, trust
+
+2. USE the actual services/products mentioned - don't make up generic content
+
+3. Create copy that reflects the TRUE nature of this business
 
 Requirements:
-- Headline: 5-10 words, powerful and attention-grabbing
-- Subheadline: 10-20 words, explains the value proposition
-- Tagline: 3-6 words, memorable brand slogan
+- Headline: 5-10 words, powerful and specific to this business type
+- Subheadline: 10-20 words, explains the actual value proposition
+- Tagline: 3-6 words, memorable and relevant to the business
 
 Format your response exactly like this:
 HEADLINE: [your headline]
@@ -220,22 +237,36 @@ TAGLINE: [your tagline]
  * Generate about text
  */
 async function generateAboutText(context: BusinessContext): Promise<string | null> {
-  const prompt = `Write a compelling "About Us" section for a ${context.businessType} business website.
+  const prompt = `You are a professional copywriter. Write an "About Us" section for this business.
 
-Business Name: ${context.name}
-${context.description ? `Current Description: ${context.description}` : ''}
-${context.services?.length ? `Services: ${context.services.join(', ')}` : ''}
-${context.city ? `Location: ${context.city}` : ''}
-${context.uniqueSellingPoints?.length ? `Unique Selling Points: ${context.uniqueSellingPoints.join(', ')}` : ''}
+Business Analysis:
+- Name: ${context.name}
+- Type: ${context.businessType}
+${context.description ? `- Current Description: ${context.description}` : ''}
+${context.services?.length ? `- Services/Offerings: ${context.services.join(', ')}` : ''}
+${context.products?.length ? `- Products: ${context.products.slice(0, 5).map(p => p.name).join(', ')}` : ''}
+${context.city ? `- Location: ${context.city}` : ''}
+${context.uniqueSellingPoints?.length ? `- Unique Strengths: ${context.uniqueSellingPoints.join(', ')}` : ''}
+
+SMART ANALYSIS REQUIRED:
+1. Identify what makes this specific business unique
+2. Write about ACTUAL services/products mentioned, not generic statements
+3. For perfume stores: Mention fragrances, scents, olfactory experiences
+4. For gyms: Mention fitness goals, training, health transformation
+5. For restaurants: Mention cuisine, dining, culinary craftsmanship
+6. For e-commerce: Mention product quality, shopping experience, collections
+7. For beauty salons: Mention treatments, styling, pampering
+8. Use the business name naturally throughout the text
 
 Requirements:
 - 2-3 paragraphs (100-150 words total)
-- Professional but approachable tone
-- Focus on customer benefits
-- Include a subtle call-to-action
-- Don't use generic phrases like "we are passionate"
+- Professional but warm and authentic tone
+- Focus on customer benefits and real value
+- Include what makes this business special
+- NO generic phrases like "we are passionate about excellence"
+- Make it sound real and believable
 
-Write the about text directly, no labels or formatting:
+Write the about text directly (no labels):
 --END--`;
 
   const result = await cohereGenerate(prompt, { maxTokens: 300, temperature: 0.7 });
@@ -246,17 +277,32 @@ Write the about text directly, no labels or formatting:
  * Generate value propositions
  */
 async function generateValuePropositions(context: BusinessContext): Promise<string[] | null> {
-  const prompt = `Generate 4 compelling value propositions for a ${context.businessType} business.
+  const prompt = `Generate 4 compelling value propositions for this specific business.
 
-Business Name: ${context.name}
-${context.description ? `Description: ${context.description}` : ''}
-${context.services?.length ? `Services: ${context.services.join(', ')}` : ''}
+Business Analysis:
+- Name: ${context.name}
+- Type: ${context.businessType}
+${context.description ? `- Description: ${context.description}` : ''}
+${context.services?.length ? `- Actual Services: ${context.services.join(', ')}` : ''}
+${context.products?.length ? `- Products: ${context.products.slice(0, 5).map(p => p.name).join(', ')}` : ''}
+${context.uniqueSellingPoints?.length ? `- Strengths: ${context.uniqueSellingPoints.join(', ')}` : ''}
+
+SMART ANALYSIS REQUIRED:
+1. Analyze what VALUE this business provides to customers
+2. Base propositions on ACTUAL offerings, not generic claims
+3. For perfume stores: Focus on fragrance selection, scent experience, premium brands
+4. For gyms: Focus on fitness transformation, expert training, community
+5. For restaurants: Focus on cuisine quality, dining experience, chef expertise
+6. For beauty salons: Focus on beauty transformations, expert stylists, treatments
+7. For e-commerce: Focus on product quality, shopping convenience, variety
+8. Make each proposition SPECIFIC to this business
 
 Requirements:
 - Each value prop should be 5-10 words
-- Focus on customer benefits, not features
-- Be specific, not generic
+- Focus on SPECIFIC customer benefits, not generic features
+- Be believable and authentic
 - Start with action verbs or benefit statements
+- NO generic phrases like "Excellence in Everything We Do"
 
 Format: One value proposition per line, numbered 1-4.
 --END--`;
@@ -316,12 +362,26 @@ async function generateServiceDescriptions(
 
   const serviceList = context.services.slice(0, 6);
   
-  const prompt = `Write brief, compelling descriptions for these ${context.businessType} services:
+  const prompt = `Write brief, compelling descriptions for these ACTUAL services from a ${context.businessType} business.
 
-Business: ${context.name}
-Services: ${serviceList.join(', ')}
+Business Analysis:
+- Name: ${context.name}
+- Type: ${context.businessType}
+${context.description ? `- Business Description: ${context.description}` : ''}
+${context.products?.length ? `- Products Sold: ${context.products.slice(0, 5).map(p => p.name).join(', ')}` : ''}
 
-For each service, write a 15-25 word description focusing on customer benefits.
+Services to Describe: ${serviceList.join(', ')}
+
+SMART ANALYSIS REQUIRED:
+1. Understand what each service ACTUALLY means for this business type
+2. For perfume stores: Describe fragrance collections by their character (floral, woody, oriental, etc.)
+3. For gyms: Describe workout types and fitness outcomes
+4. For restaurants: Describe cuisine, flavors, dining experiences
+5. For beauty salons: Describe treatments, techniques, transformations
+6. For e-commerce: Describe product categories and what customers get
+7. Write descriptions that reflect the REAL service, not generic marketing copy
+
+For each service, write a 15-25 word description focusing on specific benefits.
 
 Format each like this:
 SERVICE: [service name]

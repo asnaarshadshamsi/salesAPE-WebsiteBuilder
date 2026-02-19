@@ -1272,96 +1272,985 @@ function areSimilar(a: string, b: string): boolean {
   return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) < 80;
 }
 
+/**
+ * Get business-type appropriate colors
+ * If extracted colors are generic defaults, replace with business-type specific colors
+ * Otherwise, keep the extracted colors from the website
+ */
+function getBusinessTypeColors(
+  extractedColors: { primary: string; secondary: string },
+  businessType: string
+): { primary: string; secondary: string } {
+  // Define business-type appropriate color palettes
+  const businessTypeColors: Record<string, { primary: string; secondary: string }> = {
+    restaurant: { primary: '#f97316', secondary: '#fb923c' }, // Orange/amber - appetite, warmth
+    ecommerce: { primary: '#6366f1', secondary: '#818cf8' }, // Indigo - trust, professional
+    healthcare: { primary: '#0ea5e9', secondary: '#38bdf8' }, // Sky blue - calm, trust
+    fitness: { primary: '#10b981', secondary: '#22c55e' }, // Green - energy, health
+    beauty: { primary: '#ec4899', secondary: '#f472b6' }, // Pink - elegance, femininity
+    realestate: { primary: '#3b82f6', secondary: '#60a5fa' }, // Blue - trust, stability
+    education: { primary: '#8b5cf6', secondary: '#a78bfa' }, // Purple - knowledge, creativity
+    agency: { primary: '#8b5cf6', secondary: '#a78bfa' }, // Purple - creative, modern
+    startup: { primary: '#6366f1', secondary: '#818cf8' }, // Indigo - innovation
+    portfolio: { primary: '#6366f1', secondary: '#818cf8' }, // Indigo - professional
+    service: { primary: '#3b82f6', secondary: '#60a5fa' }, // Blue - trust
+    other: { primary: '#3b82f6', secondary: '#60a5fa' }, // Blue - neutral
+  };
+
+  // Check if extracted colors are the generic defaults (blue/purple)
+  const isGenericDefault = (
+    (extractedColors.primary === '#3b82f6' || extractedColors.primary === '#6366f1') &&
+    (extractedColors.secondary === '#8b5cf6' || extractedColors.secondary === '#60a5fa')
+  );
+
+  // If colors are generic defaults, use business-type specific colors
+  // Otherwise, keep the extracted colors (website has intentional branding)
+  if (isGenericDefault) {
+    const typeColors = businessTypeColors[businessType] || businessTypeColors.other;
+    console.log(`[getBusinessTypeColors] Using business-type colors for ${businessType}:`, typeColors);
+    return typeColors;
+  }
+
+  console.log(`[getBusinessTypeColors] Keeping extracted colors (not generic):`, extractedColors);
+  return extractedColors;
+}
+
 // ==================== BUSINESS TYPE DETECTION ====================
 
-function detectBusinessType(allText: string, productCount: number = 0): BusinessType {
-  const lower = allText.toLowerCase();
+// ==================== PRODUCTION-LEVEL MULTI-LAYER CLASSIFICATION SYSTEM ====================
 
-  const scores: Partial<Record<BusinessType, number>> = {};
+/**
+ * ARCHITECTURE OVERVIEW:
+ * 
+ * Layer 1: High-Confidence Signals (Schema.org, Platform Detection, Navigation Analysis)
+ * Layer 2: Intent-Based Classification (Booking widgets, checkout flows, etc.)
+ * Layer 3: Keyword Scoring (Existing regex-based scoring)
+ * Layer 4: Veto Rules (Prevent misclassification from overlapping keywords)
+ * Layer 5: Ambiguity Detection (Flag uncertain classifications)
+ * Layer 6: Multi-Stage Pipeline (Family → Specific type)
+ */
 
-  // Define patterns with better specificity
-  const patterns: [BusinessType, RegExp][] = [
-    // Fitness - ONLY gym/fitness-specific terms (no generic "join now" or "membership")
-    ['fitness', /\b(fitness center|gym|workout|training session|exercise class|yoga class|personal trainer|crossfit|cardio workout|strength training|weightlifting|bodybuilding|pilates class|zumba|aerobics|spin class|hiit|bootcamp|health club|athletic training|muscle building|nutrition coaching|weight loss program|get fit|gym membership|fitness membership)\b/g],
-    // Restaurant - specific food service terms
-    ['restaurant', /\b(restaurant|menu|cuisine|dining|chef|reservation|takeout|delivery|food|bistro|cafe|catering|appetizer|entree|dessert|dine-in|order food|book a table)\b/g],
-    // Healthcare - medical and wellness
-    ['healthcare', /\b(health|medical|clinic|doctor|hospital|patient|appointment|dental|therapy|wellness|physician|healthcare|treatment|diagnosis|medication|surgery)\b/g],
-    // Beauty - salon and spa services
-    ['beauty', /\b(beauty|salon|spa|hair|makeup|skincare|cosmetic|manicure|pedicure|barber|facial|massage|waxing|nail art|hairstyle)\b/g],
-    // Ecommerce - strong shopping signals + fashion/retail terms
-    ['ecommerce', /\b(shopping cart|add to cart|checkout|my cart|view cart|ecommerce|e-commerce|online store|free shipping|product catalog|size chart|in stock|out of stock|wishlist|compare products|shop now|buy now|add to bag|fashion|clothing|apparel|collection|new arrival|sale|discount|coupon code|limited edition)\b/g],
-    // Agency - creative and marketing
-    ['agency', /\b(agency|creative|branding|digital marketing|campaign|studio|design agency|advertising|seo services|web design)\b/g],
-    // Real estate
-    ['realestate', /\b(real estate|property|realtor|homes? for sale|apartment|listing|mortgage|broker|rent|lease|square feet)\b/g],
-    // Education
-    ['education', /\b(education|school|course|learning|training program|academy|tutor|student|enroll|university|college|diploma|certification)\b/g],
-    // Portfolio
-    ['portfolio', /\b(portfolio|my work|showcase|freelance|designer|developer|case studies|projects)\b/g],
-    // Startup/SaaS
-    ['startup', /\b(startup|saas|platform|app|sign up|free trial|pricing plan|beta|subscription|software)\b/g],
-  ];
+// ==================== TYPE DEFINITIONS ====================
 
-  // Calculate scores for each type
-  for (const [type, pattern] of patterns) {
-    const matches = lower.match(pattern);
-    if (matches) scores[type] = (scores[type] || 0) + matches.length;
-  }
+type Signal = {
+  re: RegExp;
+  weight: number;          // higher = stronger signal
+  scope?: "text" | "url" | "html";  // where to apply it
+};
 
-  // Sort by score
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+type CategoryModel = {
+  type: BusinessType;
+  signals: Signal[];
+  negatives?: Signal[];    // subtract points / disqualify
+  minScore: number;        // threshold to classify
+};
+
+type ClassificationResult = {
+  type: BusinessType;
+  confidence: 'high' | 'medium' | 'low' | 'ambiguous';
+  score: number;
+  secondRunner?: { type: BusinessType; score: number };
+  reasons: string[];
+  layer: 'schema' | 'platform' | 'navigation' | 'intent' | 'keyword' | 'fallback';
+};
+
+type NavigationSignals = {
+  links: string[];
+  hasMenu: boolean;
+  hasBooking: boolean;
+  hasCart: boolean;
+  hasLogin: boolean;
+  hasPricing: boolean;
+};
+
+type PlatformDetection = {
+  type: BusinessType | null;
+  platform: string | null;
+  confidence: number;
+};
+
+const RX = {
+  // safer "word boundary" for Unicode-ish text (handles punctuation around words)
+  w: (s: string) => new RegExp(`(?:^|[^\\p{L}\\p{N}])(?:${s})(?=$|[^\\p{L}\\p{N}])`, "giu"),
+  any: (s: string) => new RegExp(s, "giu"),
+};
+
+// Very high-confidence schema.org type detection (JSON-LD)
+const schemaTypeSignals: Record<BusinessType, RegExp[]> = {
+  restaurant: [
+    /"@type"\s*:\s*"Restaurant"/i,
+    /"@type"\s*:\s*"FoodEstablishment"/i,
+    /"servesCuisine"\s*:/i,
+    /"menu"\s*:\s*"/i,
+  ],
+  healthcare: [
+    /"@type"\s*:\s*"MedicalClinic"/i,
+    /"@type"\s*:\s*"Hospital"/i,
+    /"@type"\s*:\s*"Physician"/i,
+    /"@type"\s*:\s*"Dentist"/i,
+  ],
+  beauty: [
+    /"@type"\s*:\s*"BeautySalon"/i,
+    /"@type"\s*:\s*"HairSalon"/i,
+    /"@type"\s*:\s*"NailSalon"/i,
+    /"@type"\s*:\s*"DaySpa"/i,
+  ],
+  fitness: [
+    /"@type"\s*:\s*"HealthClub"/i,
+    /"@type"\s*:\s*"SportsActivityLocation"/i,
+    /"@type"\s*:\s*"ExerciseGym"/i,
+  ],
+  ecommerce: [
+    /"@type"\s*:\s*"Product"/i,
+    /"@type"\s*:\s*"Offer"/i,
+    /"priceCurrency"\s*:/i,
+    /"availability"\s*:/i,
+  ],
+  agency: [
+    /"@type"\s*:\s*"ProfessionalService"/i,
+    /"@type"\s*:\s*"Organization"/i,
+  ],
+  realestate: [
+    /"@type"\s*:\s*"RealEstateAgent"/i,
+    /"@type"\s*:\s*"Residence"/i,
+    /"@type"\s*:\s*"ApartmentComplex"/i,
+  ],
+  education: [
+    /"@type"\s*:\s*"EducationalOrganization"/i,
+    /"@type"\s*:\s*"School"/i,
+    /"@type"\s*:\s*"CollegeOrUniversity"/i,
+    /"@type"\s*:\s*"Course"/i,
+  ],
+  portfolio: [
+    /"@type"\s*:\s*"Person"/i,
+  ],
+  startup: [
+    /"@type"\s*:\s*"SoftwareApplication"/i,
+    /"@type"\s*:\s*"WebApplication"/i,
+  ],
+  service: [
+    /"@type"\s*:\s*"LocalBusiness"/i,
+    /"@type"\s*:\s*"Service"/i,
+  ],
+  other: [],
+};
+
+// ==================== LAYER 1: PLATFORM / BOOKING WIDGET DETECTION ====================
+// These are VERY STRONG signals - if detected, they override most keyword scoring
+
+const PLATFORM_FINGERPRINTS: Record<string, { type: BusinessType; confidence: number }> = {
+  // Restaurant platforms
+  'opentable': { type: 'restaurant', confidence: 95 },
+  'resy.com': { type: 'restaurant', confidence: 95 },
+  'toasttab': { type: 'restaurant', confidence: 90 },
+  'doordash': { type: 'restaurant', confidence: 85 },
+  'ubereats': { type: 'restaurant', confidence: 85 },
+  'grubhub': { type: 'restaurant', confidence: 85 },
+  'seamless': { type: 'restaurant', confidence: 85 },
+  'eat24': { type: 'restaurant', confidence: 85 },
+  'postmates': { type: 'restaurant', confidence: 80 },
   
-  console.log('[detectBusinessType] Scores:', Object.fromEntries(sorted.slice(0, 5)));
-  console.log('[detectBusinessType] Product count:', productCount);
-
-  // Check for strong fitness/gym signals FIRST (requires specific gym terms)
-  const fitnessScore = scores['fitness'] || 0;
-  const ecommerceScore = scores['ecommerce'] || 0;
+  // Beauty/salon platforms
+  'fresha.com': { type: 'beauty', confidence: 95 },
+  'booksy.com': { type: 'beauty', confidence: 95 },
+  'vagaro.com': { type: 'beauty', confidence: 95 },
+  'styleseat': { type: 'beauty', confidence: 95 },
+  'schedulicity': { type: 'beauty', confidence: 90 },
+  'booker.com': { type: 'beauty', confidence: 90 },
+  'zenoti': { type: 'beauty', confidence: 90 },
   
-  // Fitness needs higher threshold (>=5) to avoid false positives
-  if (fitnessScore >= 5) {
-    console.log(`[detectBusinessType] Strong fitness signals (${fitnessScore}), marking as fitness`);
-    return 'fitness';
-  }
+  // Fitness platforms
+  'mindbodyonline': { type: 'fitness', confidence: 95 },
+  'zenplanner': { type: 'fitness', confidence: 95 },
+  'gymmaster': { type: 'fitness', confidence: 95 },
+  'wodify': { type: 'fitness', confidence: 90 },
+  'trainerize': { type: 'fitness', confidence: 90 },
+  'perfectgym': { type: 'fitness', confidence: 90 },
+  
+  // E-commerce platforms
+  'shopify': { type: 'ecommerce', confidence: 90 },
+  'myshopify.com': { type: 'ecommerce', confidence: 95 },
+  'woocommerce': { type: 'ecommerce', confidence: 90 },
+  'magento': { type: 'ecommerce', confidence: 90 },
+  'bigcommerce': { type: 'ecommerce', confidence: 90 },
+  'squarespace/commerce': { type: 'ecommerce', confidence: 85 },
+  'wix.com/ecommerce': { type: 'ecommerce', confidence: 85 },
+  'ecwid': { type: 'ecommerce', confidence: 90 },
+  'shoplazza': { type: 'ecommerce', confidence: 90 },
+  
+  // Healthcare platforms
+  'zocdoc': { type: 'healthcare', confidence: 90 },
+  'practicefusion': { type: 'healthcare', confidence: 90 },
+  'athenahealth': { type: 'healthcare', confidence: 90 },
+  'kareo': { type: 'healthcare', confidence: 85 },
+  
+  // Startup/SaaS specific
+  'stripe.com': { type: 'startup', confidence: 70 },
+  'auth0': { type: 'startup', confidence: 65 },
+  'intercom': { type: 'startup', confidence: 60 },
+};
 
-  // If we have products AND any ecommerce signals, it's ecommerce
-  if (productCount >= 3 && ecommerceScore >= 2) {
-    console.log(`[detectBusinessType] Found ${productCount} products + ecommerce signals (${ecommerceScore}), marking as ecommerce`);
-    return 'ecommerce';
-  }
+// ==================== LAYER 2: NAVIGATION ANALYSIS ====================
+// Navigation menu links are high-priority signals
 
-  // If we have many products, likely ecommerce even without explicit signals
-  if (productCount >= 5) {
-    console.log(`[detectBusinessType] Found ${productCount} products (high count), defaulting to ecommerce`);
-    return 'ecommerce';
-  }
+const NAVIGATION_PATTERNS: Record<BusinessType, RegExp[]> = {
+  restaurant: [
+    /\b(menu|menus|food-menu|drinks|wine-list|order-online|delivery|takeout|reservations?|book-table)\b/i,
+  ],
+  beauty: [
+    /\b(services|treatments|stylists|hair|nails|spa|facials?|massage|waxing|book-appointment|pricing)\b/i,
+  ],
+  fitness: [
+    /\b(classes?|schedule|membership|join-now|personal-training|trainers?|programs?|workouts?|sign-up)\b/i,
+  ],
+  healthcare: [
+    /\b(doctors?|physicians?|departments?|specialties|patient-portal|appointments?|services|insurance|billing)\b/i,
+  ],
+  ecommerce: [
+    /\b(shop|store|products?|collections?|cart|checkout|account|my-account|orders?)\b/i,
+  ],
+  startup: [
+    /\b(pricing|features|login|signup|sign-up|dashboard|docs|documentation|api|integrations?)\b/i,
+  ],
+  education: [
+    /\b(courses?|programs?|enroll|admissions?|students?|faculty|campus|academics|apply)\b/i,
+  ],
+  realestate: [
+    /\b(properties|listings?|search|buy|sell|rent|agents?|neighborhoods?|mortgage)\b/i,
+  ],
+  agency: [
+    /\b(services|portfolio|work|projects?|case-studies|clients?|expertise|solutions)\b/i,
+  ],
+  portfolio: [
+    /\b(about|work|projects?|portfolio|contact|resume|hire-me)\b/i,
+  ],
+  service: [
+    /\b(services|quote|estimate|contact|areas?|about|testimonials?)\b/i,
+  ],
+  other: [],
+};
 
-  // If fitness is the top scorer with good score, use it
-  if (sorted.length > 0 && sorted[0][0] === 'fitness' && sorted[0][1] >= 4) {
-    console.log(`[detectBusinessType] Fitness is top scorer (${sorted[0][1]}), marking as fitness`);
-    return 'fitness';
-  }
+// ==================== LAYER 3: INTENT DETECTION ====================
+// Intent patterns that should override generic keyword collisions
 
-  // For moderate product count (3-4), prefer ecommerce over fitness unless fitness score is much higher
-  if (productCount >= 3 && ecommerceScore > 0) {
-    // Only override for fitness if fitness score 2x higher than ecommerce
-    if (fitnessScore > ecommerceScore * 2 && fitnessScore >= 4) {
-      console.log(`[detectBusinessType] Fitness score (${fitnessScore}) significantly higher than ecommerce (${ecommerceScore}), marking as fitness`);
-      return 'fitness';
+const INTENT_PATTERNS: Record<BusinessType, { patterns: RegExp[]; weight: number }> = {
+  restaurant: {
+    patterns: [
+      /\b(order (food|online|takeout|delivery)|reserve (a )?table|view (our )?menu|book (a )?reservation)\b/i,
+      /\b(dine(-| )in|take(-| )out|curbside pickup|food delivery)\b/i,
+    ],
+    weight: 15,
+  },
+  beauty: {
+    patterns: [
+      /\b(book (an? )?(appointment|service)|schedule (a |an )?(haircut|facial|manicure|treatment))\b/i,
+      /\b(salon (services|treatments)|spa (services|treatments)|hair (styling|coloring|treatment))\b/i,
+    ],
+    weight: 15,
+  },
+  fitness: {
+    patterns: [
+      /\b((join|start) (a |your )?membership|(book|schedule) (a )?class|personal training (session)?)\b/i,
+      /\b(fitness (goals|journey|program)|workout (plan|schedule)|gym membership)\b/i,
+    ],
+    weight: 15,
+  },
+  healthcare: {
+    patterns: [
+      /\b(schedule (an? )?(appointment|visit)|patient (portal|registration)|medical (services|treatment))\b/i,
+      /\b(healthcare (services|provider)|clinical (services|care)|diagnosis|treatment plan)\b/i,
+    ],
+    weight: 15,
+  },
+  ecommerce: {
+    patterns: [
+      /\b(add to (cart|bag)|checkout|shop (now|online)|buy (now|online)|place (an )?order)\b/i,
+      /\b(free shipping|in stock|out of stock|track (your )?order|return policy)\b/i,
+    ],
+    weight: 12,
+  },
+  startup: {
+    patterns: [
+      /\b((start|begin) (your )?(free )?trial|sign up free|create (an )?account|get started (free)?)\b/i,
+      /\b(api (access|integration)|developer (docs|api)|webhook|enterprise (plan|solution))\b/i,
+    ],
+    weight: 12,
+  },
+  education: {
+    patterns: [
+      /\b(enroll (now|today)|apply (now|online)|register for (class|course)|admission (process|requirements))\b/i,
+      /\b(course (catalog|offerings)|degree (program)?|student (portal|services))\b/i,
+    ],
+    weight: 12,
+  },
+  realestate: {
+    patterns: [
+      /\b(search (properties|homes|listings)|schedule (a )?(showing|tour|viewing)|property (search|listings))\b/i,
+      /\b((buy|sell|rent) (a )?(home|property)|real estate (agent|services))\b/i,
+    ],
+    weight: 12,
+  },
+  agency: {
+    patterns: [
+      /\b(request (a )?(quote|proposal)|start (a )?project|get (a )?(free )?consultation)\b/i,
+      /\b((our|creative|digital) (services|solutions|expertise)|case (study|studies))\b/i,
+    ],
+    weight: 10,
+  },
+  portfolio: {
+    patterns: [
+      /\b(hire me|available for work|let'?s work together|view (my )?(work|portfolio))\b/i,
+    ],
+    weight: 10,
+  },
+  service: {
+    patterns: [
+      /\b(get (a )?(free )?(quote|estimate)|request (a )?(quote|estimate|service)|schedule (a )?service)\b/i,
+    ],
+    weight: 10,
+  },
+  other: {
+    patterns: [],
+    weight: 0,
+  },
+};
+
+const CLASSIFICATION_MODELS: CategoryModel[] = [
+  {
+    type: "ecommerce",
+    minScore: 10,
+    signals: [
+      // Checkout intent (very strong)
+      { re: RX.any("\\b(add to cart|checkout|secure checkout|buy now|add to bag|cart subtotal|view cart|my cart)\\b"), weight: 8 },
+      { re: RX.any("\\b(shop now|limited stock|in stock|out of stock|size guide|size chart|returns?|refund policy)\\b"), weight: 5 },
+      { re: RX.any("\\b(product(s)?|variant|sku\\b|shipping\\b|free shipping\\b|track order\\b|order status|add to wishlist)\\b"), weight: 4 },
+      // Fashion/retail specific
+      { re: RX.any("\\b(collection|new arrival|sale|discount|coupon|promo code|limited edition|best seller|trending now)\\b"), weight: 3 },
+      // URL signals
+      { re: /\/(cart|checkout|collections|products|product|shop)\b/i, weight: 6, scope: "url" },
+      { re: /\b(shopify|woocommerce|magento|bigcommerce)\b/i, weight: 7 },
+    ],
+    negatives: [
+      // SaaS pricing pages can look like commerce
+      { re: RX.any("\\b(api|developer docs|documentation|integrations|sdk|status page)\\b"), weight: 3 },
+    ],
+  },
+
+  {
+    type: "restaurant",
+    minScore: 12,
+    signals: [
+      { re: RX.any("\\b(menu|our menu|drinks menu|lunch menu|dinner menu|breakfast menu|tasting menu|chef'?s special|food menu|wine list|view menu)\\b"), weight: 8 },
+      { re: RX.any("\\b(book a table|reservation(s)?|opentable|resy|table for \\d+|reserve now|make reservation)\\b"), weight: 8 },
+      { re: RX.any("\\b(takeout|take-away|delivery|order online|pickup|ubereats|doordash|foodpanda|deliveroo|grubhub|order now)\\b"), weight: 7 },
+      { re: RX.any("\\b(restaurant|bistro|cafe|cafeteria|dining|cuisine|culinary|gastronomic|eatery)\\b"), weight: 5 },
+      { re: RX.any("\\b(starters?|appetizers?|entrees?|mains?|desserts?|sides?|courses?|prix fixe)\\b"), weight: 4 },
+      { re: RX.any("\\b(dine-in|dine in|eat in|fast food|quick service|table service)\\b"), weight: 4 },
+      { re: /\/(menu|reservations?|order|delivery|dine|locations)\b/i, weight: 6, scope: "url" },
+    ],
+    negatives: [
+      { re: RX.any("\\b(restaurant management|restaurant software|pos system|inventory management)\\b"), weight: 5 },
+    ],
+  },
+
+  {
+    type: "healthcare",
+    minScore: 10,
+    signals: [
+      { re: RX.any("\\b(book (an )?appointment|make an appointment|patient portal|telemedicine|telehealth|video consult)\\b"), weight: 7 },
+      { re: RX.any("\\b(doctor|physician|clinic|hospital|diagnosis|treatment|symptoms?|prescription|pharmacy|medical)\\b"), weight: 5 },
+      { re: RX.any("\\b(pediatrics?|cardiology|dermatology|gynecology|obstetrics|orthopedics?|neurology|urology|psychiatry|oncology)\\b"), weight: 6 },
+      { re: RX.any("\\b(insurance|billing|copay|referral|lab results?|radiology|ultrasound|x-?ray|mri|ct scan|blood test)\\b"), weight: 4 },
+      { re: RX.any("\\b(dental|dentist|orthodontist|endodontist|root canal|crown|filling|teeth whitening)\\b"), weight: 5 },
+      { re: /\/(appointment|patients?|services|departments?|doctors?)\b/i, weight: 4, scope: "url" },
+    ],
+    negatives: [
+      { re: RX.any("\\b(health tips blog|wellness blog only|supplements store)\\b"), weight: 3 },
+    ],
+  },
+
+  {
+    type: "beauty",
+    minScore: 15, // Increased from 9 to require stronger signals
+    signals: [
+      // Fragrance / perfume commerce (HIGHEST PRIORITY - very strong signals)
+      // These businesses are ALWAYS beauty, even if they have strong ecommerce signals
+      { re: RX.any("\\b(perfume|parfum|fragrance(s)?|cologne|eau de parfum|eau de toilette|edp|edt|attar|oud|decant(s)?)\\b"), weight: 12 },
+      { re: RX.any("\\b(notes?\\s*:\\s*(top|middle|base)|sillage|projection|longevity|batch code|fragrance notes|scent notes)\\b"), weight: 10 },
+      
+      // Salon/spa services (strong)
+      { re: RX.any("\\b(hair salon|beauty salon|nail salon|spa service|haircut|blowout|balayage|highlights?|hair color|keratin|hair treatment|styling)\\b"), weight: 7 },
+      { re: RX.any("\\b(manicure|pedicure|nail art|gel nails|acrylic nails|lash extension|brow(s)? service|waxing service|threading|eyebrow service)\\b"), weight: 7 },
+      { re: RX.any("\\b(spa|facial(s)?|hydrafacial|massage therapy|body scrub|body wrap|body treatment)\\b"), weight: 6 },
+      
+      // Cosmetics & skincare
+      { re: RX.any("\\b(cosmetic(s)?|makeup|lipstick|foundation|concealer|eyeshadow|mascara|blush|primer)\\b"), weight: 5 },
+      { re: RX.any("\\b(skincare|serum|moisturizer|cleanser|toner|exfoliant|anti-aging|sunscreen|spf)\\b"), weight: 4 },
+      
+      { re: /\/(salon|spa|fragrance|perfume|beauty|cosmetics|parfum)\b/i, weight: 6, scope: "url" },
+    ],
+    negatives: [
+      { re: RX.any("\\b(beauty of|beautiful|beauty is)\\b"), weight: 2 }, // "beauty" as generic word
+      { re: RX.any("\\b(beauty salon software|salon management software)\\b"), weight: 6 },
+      // Don't confuse fragrance products with fitness "workout" collections
+      { re: RX.any("\\b(gym membership|fitness class|personal trainer)\\b"), weight: 3 },
+    ],
+  },
+
+  {
+    type: "fitness",
+    minScore: 9,
+    signals: [
+      { re: RX.any("\\b(gym|fitness (center|club)|health club|gym membership|day pass|multipass)\\b"), weight: 7 },
+      { re: RX.any("\\b(personal training|personal trainer|strength training|weight training|free weights|functional training|pt session)\\b"), weight: 6 },
+      { re: RX.any("\\b(class schedule|timetable|hiit|spin class|zumba|pilates class|yoga (studio|class)|crossfit|bootcamp)\\b"), weight: 6 },
+      { re: RX.any("\\b(trainer(s)?|training plan|body composition|inbody|macro coaching|nutrition coaching|fitness assessment)\\b"), weight: 4 },
+      { re: RX.any("\\b(cardio|treadmill|elliptical|rowing machine|exercise equipment|weight room|locker room|sauna)\\b"), weight: 3 },
+      { re: /\/(classes|schedule|membership|trainers?|gym)\b/i, weight: 5, scope: "url" },
+    ],
+    negatives: [
+      // avoid "workout app / workout program" SaaS pages
+      { re: RX.any("\\b(api|dashboard|platform|saas|integrations|docs|developer)\\b"), weight: 4 },
+      // Don't confuse with perfume collections named "workout"
+      { re: RX.any("\\b(perfume|parfum|fragrance|eau de|cologne|scent)\\b"), weight: 5 },
+    ],
+  },
+
+  {
+    type: "realestate",
+    minScore: 9,
+    signals: [
+      { re: RX.any("\\b(listing(s)?|for sale|for rent|open house|property details|mls\\b|sq\\.?\\s*ft|square feet|price per sq)\\b"), weight: 6 },
+      { re: RX.any("\\b(realtor|real estate agent|brokerage|broker|mortgage|down payment|escrow|closing costs|title)\\b"), weight: 5 },
+      { re: RX.any("\\b(apartment(s)?|condo|villa(s)?|plot(s)?|townhouse|bed(room)?s?|bath(room)?s?|bhk)\\b"), weight: 4 },
+      { re: RX.any("\\b(property|properties|residential|commercial|land|lease|tenant|landlord)\\b"), weight: 3 },
+      { re: /\/(listings?|properties|rent|buy|sell|realestate)\b/i, weight: 5, scope: "url" },
+    ],
+    negatives: [
+      { re: RX.any("\\b(real estate software|crm for realtors|property management software)\\b"), weight: 6 },
+    ],
+  },
+
+  {
+    type: "education",
+    minScore: 8,
+    signals: [
+      { re: RX.any("\\b(course(s)?|curriculum|syllabus|enroll|admissions?|tuition|scholarship(s)?|apply now)\\b"), weight: 6 },
+      { re: RX.any("\\b(academy|school|college|university|institute|campus|student(s)?|faculty|professor)\\b"), weight: 5 },
+      { re: RX.any("\\b(certification|certificate|diploma|degree|semester|lecture(s)?|training program|online learning)\\b"), weight: 4 },
+      { re: RX.any("\\b(e-learning|lms|learning management|virtual classroom|study material)\\b"), weight: 4 },
+      { re: /\/(courses?|admissions?|apply|programs?|learning)\b/i, weight: 4, scope: "url" },
+    ],
+  },
+
+  {
+    type: "agency",
+    minScore: 8,
+    signals: [
+      { re: RX.any("\\b(creative agency|marketing agency|digital agency|advertising agency|branding|brand strategy)\\b"), weight: 7 },
+      { re: RX.any("\\b(seo|ppc|google ads|meta ads|content strategy|social media management|smm|influencer marketing)\\b"), weight: 5 },
+      { re: RX.any("\\b(web design|ui/ux|graphic design|copywriting|campaign(s)?|creative services)\\b"), weight: 4 },
+      { re: RX.any("\\b(case studies?|our work|our clients?|portfolio|client testimonials|success stories)\\b"), weight: 3 },
+      { re: /\/(services|work|portfolio|clients|case-studies)\b/i, weight: 3, scope: "url" },
+    ],
+    negatives: [
+      { re: RX.any("\\b(hiring|careers|job openings)\\b"), weight: 1 },
+    ],
+  },
+
+  {
+    type: "startup",
+    minScore: 8,
+    signals: [
+      { re: RX.any("\\b(sign up|log in|login|dashboard|free trial|pricing|subscription|billing|get started)\\b"), weight: 6 },
+      { re: RX.any("\\b(api|documentation|integrations|sdk|webhooks|status page|developer portal)\\b"), weight: 6 },
+      { re: RX.any("\\b(saas|platform|cloud-based|enterprise|teams?|workspace|automation)\\b"), weight: 5 },
+      { re: RX.any("\\b(features|plans|upgrade|premium|pro plan|business plan)\\b"), weight: 3 },
+      { re: /\/(pricing|docs|login|signup|register|dashboard)\b/i, weight: 4, scope: "url" },
+    ],
+    negatives: [
+      // ecommerce checkout pages can resemble SaaS pricing
+      { re: RX.any("\\b(add to cart|shipping|returns?)\\b"), weight: 4 },
+    ],
+  },
+
+  {
+    type: "portfolio",
+    minScore: 7,
+    signals: [
+      { re: RX.any("\\b(about me|my work|my projects?|case studies?|dribbble|behance|github|resume|cv)\\b"), weight: 6 },
+      { re: RX.any("\\b(freelance|available for work|hire me|contact me|let'?s work together)\\b"), weight: 5 },
+      { re: RX.any("\\b(ux designer|product designer|full-stack developer|photographer|videographer|illustrator)\\b"), weight: 4 },
+      { re: /\/(about|work|projects?|contact)\b/i, weight: 3, scope: "url" },
+    ],
+    negatives: [
+      { re: RX.any("\\b(our team|enterprise|pricing|checkout)\\b"), weight: 3 },
+    ],
+  },
+
+  {
+    type: "service",
+    minScore: 6,
+    signals: [
+      // Generic service business terms (plumbing, landscaping, cleaning, etc.)
+      { re: RX.any("\\b(plumbing|plumber|electrician|electrical service|hvac|air conditioning|heating)\\b"), weight: 6 },
+      { re: RX.any("\\b(landscaping|lawn care|gardening|tree service|irrigation|lawn mowing)\\b"), weight: 6 },
+      { re: RX.any("\\b(cleaning service|housekeeping|maid service|janitorial|carpet cleaning)\\b"), weight: 6 },
+      { re: RX.any("\\b(roofing|siding|gutter|painting service|home improvement|handyman)\\b"), weight: 5 },
+      { re: RX.any("\\b(pest control|extermin|moving service|junk removal|hauling)\\b"), weight: 5 },
+      { re: RX.any("\\b(auto repair|car repair|mechanic|body shop|detailing)\\b"), weight: 5 },
+      { re: RX.any("\\b(free quote|free estimate|get a quote|request quote|call us|service area)\\b"), weight: 4 },
+      { re: RX.any("\\b(licensed|insured|certified|bonded|professional service)\\b"), weight: 3 },
+      { re: /\/(services?|quote|estimate|areas?-served)\b/i, weight: 3, scope: "url" },
+    ],
+  },
+
+  {
+    type: "other",
+    minScore: 0, // catch-all, always qualifies
+    signals: [],
+  },
+];
+
+function normalize(input: string): string {
+  // normalize unicode, lowercase, collapse whitespace
+  return input
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+type ClassifyInput = {
+  text: string;      // visible text + meta + headings combined
+  url?: string;      // page url
+  html?: string;     // full HTML for platform detection
+  jsonLd?: string;   // extracted JSON-LD blocks concatenated
+  productCount?: number; // number of products found
+  navigationLinks?: string[]; // extracted navigation hrefs
+};
+
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Layer 1A: Detect platforms from HTML (scripts, iframes, etc.)
+ */
+function detectPlatform(html: string): PlatformDetection {
+  const H = html.toLowerCase();
+  
+  for (const [fingerprint, config] of Object.entries(PLATFORM_FINGERPRINTS)) {
+    if (H.includes(fingerprint.toLowerCase())) {
+      console.log(`[detectPlatform] Found platform: ${fingerprint} → ${config.type} (confidence: ${config.confidence}%)`);
+      return {
+        type: config.type,
+        platform: fingerprint,
+        confidence: config.confidence,
+      };
     }
-    console.log(`[detectBusinessType] Products with ecommerce signals, marking as ecommerce`);
-    return 'ecommerce';
-  }
-
-  // Use top scorer if score >= 3
-  if (sorted.length > 0 && sorted[0][1] >= 3) {
-    console.log(`[detectBusinessType] Top type: ${sorted[0][0]} (score: ${sorted[0][1]})`);
-    return sorted[0][0] as BusinessType;
   }
   
-  console.log('[detectBusinessType] No strong signals, defaulting to service');
-  return 'service';
+  return { type: null, platform: null, confidence: 0 };
+}
+
+/**
+ * Layer 1B: Analyze navigation links
+ */
+function analyzeNavigation(links: string[]): NavigationSignals {
+  const linkText = links.join(' ').toLowerCase();
+  
+  return {
+    links: links.map(l => l.toLowerCase()),
+    hasMenu: /\b(menu|food|drinks)\b/.test(linkText),
+    hasBooking: /\b(book|reservation|appointment|schedule)\b/.test(linkText),
+    hasCart: /\b(cart|shop|store|checkout)\b/.test(linkText),
+    hasLogin: /\b(login|signin|sign-in|dashboard|account)\b/.test(linkText),
+    hasPricing: /\b(pricing|plans|subscribe|membership)\b/.test(linkText),
+  };
+}
+
+/**
+ * Layer 1C: Get navigation-based type scores
+ */
+function getNavigationScores(links: string[]): Partial<Record<BusinessType, number>> {
+  const scores: Partial<Record<BusinessType, number>> = {};
+  const linkText = links.join(' ');
+  
+  for (const [type, patterns] of Object.entries(NAVIGATION_PATTERNS) as [BusinessType, RegExp[]][]) {
+    let score = 0;
+    for (const pattern of patterns) {
+      const matches = linkText.match(pattern);
+      if (matches) {
+        score += matches.length * 8; // High weight for navigation matches
+      }
+    }
+    if (score > 0) {
+      scores[type] = score;
+    }
+  }
+  
+  return scores;
+}
+
+/**
+ * Layer 2: Detect intent patterns
+ */
+function detectIntent(text: string): Partial<Record<BusinessType, number>> {
+  const scores: Partial<Record<BusinessType, number>> = {};
+  
+  for (const [type, config] of Object.entries(INTENT_PATTERNS) as [BusinessType, { patterns: RegExp[]; weight: number }][]) {
+    let matches = 0;
+    for (const pattern of config.patterns) {
+      if (pattern.test(text)) {
+        matches++;
+      }
+    }
+    if (matches > 0) {
+      scores[type] = matches * config.weight;
+    }
+  }
+  
+  return scores;
+}
+
+/**
+ * Layer 4: Veto rules to prevent misclassification
+ * Returns null if classification should proceed, or a BusinessType if veto is triggered
+ */
+function applyVetoRules(
+  scores: Record<BusinessType, number>,
+  intent: Partial<Record<BusinessType, number>>,
+  platform: PlatformDetection,
+  navSignals: NavigationSignals
+): { vetoed: boolean; type?: BusinessType; reason?: string } {
+  
+  // VETO RULE 1: Restaurant intent + menu signals → prevent beauty/salon
+  if (
+    (intent['restaurant'] || 0) > 10 &&
+    scores['restaurant'] >= 12 &&
+    navSignals.hasMenu
+  ) {
+    if (scores['beauty'] > scores['restaurant'] && scores['beauty'] < scores['restaurant'] + 20) {
+      console.log('[Veto] Restaurant intent detected, blocking beauty classification');
+      return { vetoed: true, type: 'restaurant', reason: 'Restaurant intent with menu signals' };
+    }
+  }
+  
+  // VETO RULE 2: Beauty/salon booking widget detected → prevent restaurant
+  if (
+    platform.type === 'beauty' &&
+    platform.confidence >= 90 &&
+    scores['beauty'] >= 10
+  ) {
+    console.log('[Veto] Beauty platform detected, blocking non-beauty classification');
+    return { vetoed: true, type: 'beauty', reason: 'Beauty booking platform detected' };
+  }
+  
+  // VETO RULE 3: Ecommerce checkout signals → startup cannot win unless strong SaaS signals
+  if (
+    scores['ecommerce'] >= 15 &&
+    navSignals.hasCart &&
+    scores['startup'] > scores['ecommerce']
+  ) {
+    if ((intent['startup'] || 0) < 15) {
+      console.log('[Veto] E-commerce checkout detected, blocking startup classification');
+      return { vetoed: true, type: 'ecommerce', reason: 'E-commerce checkout signals' };
+    }
+  }
+  
+  // VETO RULE 4: Fitness platform detected → prevent beauty/healthcare
+  if (
+    platform.type === 'fitness' &&
+    platform.confidence >= 90
+  ) {
+    console.log('[Veto] Fitness platform detected');
+    return { vetoed: true, type: 'fitness', reason: 'Fitness booking platform detected' };
+  }
+  
+  // VETO RULE 5: Healthcare appointment system → prevent beauty/fitness
+  if (
+    (intent['healthcare'] || 0) > 12 &&
+    scores['healthcare'] >= 10 &&
+    /(patient|doctor|physician|clinic|medical)/i.test(JSON.stringify(scores))
+  ) {
+    if (scores['beauty'] > scores['healthcare'] || scores['fitness'] > scores['healthcare']) {
+      console.log('[Veto] Healthcare intent detected, blocking beauty/fitness');
+      return { vetoed: true, type: 'healthcare', reason: 'Healthcare appointment system detected' };
+    }
+  }
+  
+  // VETO RULE 6: Perfume/fragrance business → prevent gym/fitness misclassification
+  if (
+    scores['beauty'] >= 24 &&
+    scores['fitness'] > scores['beauty']
+  ) {
+    console.log('[Veto] Strong perfume/fragrance signals, blocking fitness');
+    return { vetoed: true, type: 'beauty', reason: 'Perfume/fragrance business detected' };
+  }
+  
+  return { vetoed: false };
+}
+
+/**
+ * Extract navigation menu links from HTML for classification
+ */
+function extractNavigationMenuLinks(html: string): string[] {
+  const links: string[] = [];
+  
+  // Extract from <nav> elements
+  const navRegex = /<nav[^>]*>([\s\S]*?)<\/nav>/gi;
+  const navMatches = html.matchAll(navRegex);
+  
+  for (const navMatch of navMatches) {
+    const navHtml = navMatch[1];
+    const anchorRegex = /<a[^>]*href="([^"]*)"[^>]*>([^<]+)<\/a>/gi;
+    const anchorMatches = navHtml.matchAll(anchorRegex);
+    
+    for (const anchorMatch of anchorMatches) {
+      const href = anchorMatch[1];
+      const text = anchorMatch[2];
+      if (href && text) {
+        links.push(`${href} ${text}`.trim());
+      }
+    }
+  }
+  
+  // Extract from <header> elements if nav links not found
+  if (links.length < 3) {
+    const headerRegex = /<header[^>]*>([\s\S]*?)<\/header>/gi;
+    const headerMatches = html.matchAll(headerRegex);
+    
+    for (const headerMatch of headerMatches) {
+      const headerHtml = headerMatch[1];
+      const anchorRegex = /<a[^>]*href="([^"]*)"[^>]*>([^<]+)<\/a>/gi;
+      const anchorMatches = headerHtml.matchAll(anchorRegex);
+      
+      for (const anchorMatch of anchorMatches) {
+        const href = anchorMatch[1];
+        const text = anchorMatch[2];
+        if (href && text) {
+          links.push(`${href} ${text}`.trim());
+        }
+      }
+    }
+  }
+  
+  console.log(`[extractNavigationMenuLinks] Found ${links.length} navigation links`);
+  return links.slice(0, 20); // Limit to first 20 links
+}
+
+/**
+ * PRODUCTION-LEVEL MULTI-LAYER CLASSIFICATION
+ */
+function classifyWebsite({
+  text,
+  url = "",
+  html = "",
+  jsonLd = "",
+  productCount = 0,
+  navigationLinks = []
+}: ClassifyInput): ClassificationResult {
+  
+  const T = normalize(text);
+  const U = normalize(url);
+  const J = jsonLd; // keep as-is; regexes are case-insensitive
+  const H = html;
+  
+  const reasons: string[] = [];
+  
+  // ==================== LAYER 1: HIGH-CONFIDENCE SIGNALS ====================
+  
+  // 1A: Schema.org detection (VERY HIGH CONFIDENCE)
+  const schemaBoost: Partial<Record<BusinessType, number>> = {};
+  let schemaDetected: BusinessType | null = null;
+  let schemaConfidence = 0;
+  
+  for (const [type, res] of Object.entries(schemaTypeSignals) as [BusinessType, RegExp[]][]) {
+    for (const re of res) {
+      if (re.test(J)) {
+        const boost = 12;
+        schemaBoost[type] = (schemaBoost[type] ?? 0) + boost;
+        if ((schemaBoost[type] ?? 0) > schemaConfidence) {
+          schemaDetected = type;
+          schemaConfidence = schemaBoost[type] ?? 0;
+        }
+      }
+    }
+  }
+  
+  // If schema detected with multiple matches, high confidence
+  if (schemaDetected && schemaConfidence >= 24) {
+    reasons.push(`Schema.org ${schemaDetected} detected (confidence: ${schemaConfidence})`);
+    console.log(`[Layer 1A - Schema] Strong match: ${schemaDetected} (score: ${schemaConfidence})`);
+    return {
+      type: schemaDetected,
+      confidence: 'high',
+      score: schemaConfidence,
+      reasons,
+      layer: 'schema',
+    };
+  }
+  
+  // 1B: Platform detection
+  const platform = detectPlatform(H);
+  if (platform.type && platform.confidence >= 85) {
+    reasons.push(`Platform detected: ${platform.platform} → ${platform.type}`);
+    console.log(`[Layer 1B - Platform] ${platform.platform} → ${platform.type} (confidence: ${platform.confidence}%)`);
+    return {
+      type: platform.type,
+      confidence: 'high',
+      score: platform.confidence,
+      reasons,
+      layer: 'platform',
+    };
+  }
+  
+  // 1C: Navigation analysis
+  const navScores = navigationLinks.length > 0 ? getNavigationScores(navigationLinks) : {};
+  const navSignals = navigationLinks.length > 0 ? analyzeNavigation(navigationLinks) : {
+    links: [],
+    hasMenu: false,
+    hasBooking: false,
+    hasCart: false,
+    hasLogin: false,
+    hasPricing: false,
+  };
+  
+  Object.entries(navScores).forEach(([type, score]) => {
+    if (score >= 16) {
+      reasons.push(`Strong navigation signals for ${type} (score: ${score})`);
+    }
+  });
+  
+  // ==================== LAYER 2: INTENT DETECTION ====================
+  
+  const intentScores = detectIntent(T);
+  Object.entries(intentScores).forEach(([type, score]) => {
+    if (score >= 15) {
+      reasons.push(`Strong intent detected for ${type} (score: ${score})`);
+    }
+  });
+  
+  // ==================== LAYER 3: KEYWORD SCORING (EXISTING LOGIC) ====================
+  
+  const scores: Record<BusinessType, number> = Object.fromEntries(
+    CLASSIFICATION_MODELS.map(m => [m.type, 0])
+  ) as any;
+
+  for (const model of CLASSIFICATION_MODELS) {
+    let score = (schemaBoost[model.type] ?? 0) + (navScores[model.type] ?? 0) + (intentScores[model.type] ?? 0);
+
+    for (const s of model.signals) {
+      const hay = s.scope === "url" ? U : s.scope === "html" ? H : T;
+      if (!hay) continue;
+
+      // count matches (cap to avoid spammy keyword stuffing inflating score)
+      const matches = hay.match(s.re);
+      if (matches?.length) score += Math.min(matches.length, 3) * s.weight;
+    }
+
+    if (model.negatives?.length) {
+      for (const n of model.negatives) {
+        const hay = n.scope === "url" ? U : n.scope === "html" ? H : T;
+        const matches = hay.match(n.re);
+        if (matches?.length) score -= Math.min(matches.length, 3) * n.weight;
+      }
+    }
+
+    scores[model.type] = score;
+  }
+
+  // Product count boost for ecommerce (but only if not a specialized beauty/perfume store)
+  if (productCount >= 3 && scores['beauty'] < 20) {
+    scores['ecommerce'] += productCount * 2;
+    if (productCount >= 3) {
+      reasons.push(`Product count boost: ${productCount} products`);
+    }
+  }
+  
+  // ==================== LAYER 4: VETO RULES ====================
+  
+  const veto = applyVetoRules(scores, intentScores, platform, navSignals);
+  if (veto.vetoed && veto.type) {
+    reasons.push(`Veto applied: ${veto.reason}`);
+    console.log(`[Layer 4 - Veto] ${veto.reason} → ${veto.type}`);
+    return {
+      type: veto.type,
+      confidence: 'high',
+      score: scores[veto.type] || 0,
+      reasons,
+      layer: 'intent',
+    };
+  }
+  
+  // ==================== LAYER 5: AMBIGUITY DETECTION ====================
+  
+  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const [topType, topScore] = ranked[0] as [BusinessType, number];
+  const [secondType, secondScore] = ranked[1] as [BusinessType, number];
+  const model = CLASSIFICATION_MODELS.find(m => m.type === topType)!;
+
+  console.log('[Layer 3 - Keyword] Scores:', Object.fromEntries(ranked.slice(0, 5)));
+  console.log('[Layer 3 - Keyword] Product count:', productCount);
+  console.log('[Layer 3 - Keyword] Top type:', topType, 'Score:', topScore);
+  
+  // Ambiguity check: if top two are too close
+  if (topScore > 0 && secondScore > 0) {
+    const margin = (topScore - secondScore) / topScore;
+    if (margin < 0.2 && topScore >= model.minScore) {
+      reasons.push(`Ambiguous: ${topType} (${topScore}) vs ${secondType} (${secondScore})`);
+      console.log(`[Layer 5 - Ambiguity] Too close: ${topType} (${topScore}) vs ${secondType} (${secondScore})`);
+      return {
+        type: topType,
+        confidence: 'ambiguous',
+        score: topScore,
+        secondRunner: { type: secondType, score: secondScore },
+        reasons,
+        layer: 'keyword',
+      };
+    }
+  }
+  
+  // ==================== FINAL CLASSIFICATION ====================
+  
+  const confident = topScore >= model.minScore;
+  
+  if (confident) {
+    reasons.push(`Keyword scoring: ${topType} won with score ${topScore}`);
+  } else {
+    reasons.push(`Low confidence (score ${topScore} < threshold ${model.minScore}), falling back to 'service'`);
+  }
+
+  return {
+    type: confident ? topType : 'service',
+    confidence: confident ? (topScore >= model.minScore * 2 ? 'high' : 'medium') : 'low',
+    score: topScore,
+    secondRunner: { type: secondType, score: secondScore },
+    reasons,
+    layer: 'keyword',
+  };
+}
+
+function detectBusinessType(
+  allText: string,
+  productCount: number = 0,
+  url: string = '',
+  jsonLd: string = '',
+  html: string = '',
+  navigationLinks: string[] = []
+): BusinessType {
+  const result = classifyWebsite({
+    text: allText,
+    url,
+    html,
+    jsonLd,
+    productCount,
+    navigationLinks,
+  });
+
+  console.log('[detectBusinessType] Final result:', result.type, `(${result.confidence} confidence, layer: ${result.layer})`);
+  console.log('[detectBusinessType] Reasons:', result.reasons);
+
+  return result.type;
 }
 
 // ==================== MULTI-PAGE NAVIGATION DETECTION ====================
@@ -1443,6 +2332,25 @@ async function fetchPage(url: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+// Extract JSON-LD structured data for high-confidence business type detection
+function extractJsonLd(html: string): string {
+  const jsonLdBlocks: string[] = [];
+  const scriptMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  
+  for (const match of scriptMatches) {
+    try {
+      const jsonStr = match[1].trim();
+      // Validate it's parseable JSON, then keep it
+      JSON.parse(jsonStr);
+      jsonLdBlocks.push(jsonStr);
+    } catch {
+      // Skip invalid JSON
+    }
+  }
+  
+  return jsonLdBlocks.join('\n');
 }
 
 // ==================== MAIN SCRAPER ====================
@@ -1705,7 +2613,23 @@ export class EnhancedScraperService {
         `\nContact: Phone: ${footerPhone || 'N/A'}, Email: ${footerEmail || 'N/A'}, Address: ${footerAddress || 'N/A'}`,
       ].join('\n').slice(0, 8000); // Limit for LLM context
 
-      const businessType = detectBusinessType(allHtml + ' ' + homeText.title + ' ' + homeText.metaDescription, uniqueProducts.length);
+      // Extract navigation links for classification
+      const navLinks = extractNavigationMenuLinks(allHtml);
+      
+      // Extract JSON-LD for high-confidence business type detection
+      const jsonLd = extractJsonLd(allHtml);
+      const businessType = detectBusinessType(
+        allHtml + ' ' + homeText.title + ' ' + homeText.metaDescription, 
+        uniqueProducts.length,
+        url,
+        jsonLd,
+        allHtml,
+        navLinks
+      );
+
+      // Make colors business-type aware: use extracted colors if they're not generic defaults,
+      // otherwise use business-type appropriate colors
+      const finalColors = getBusinessTypeColors(colors, businessType);
 
       const elapsed = Date.now() - startTime;
       console.log(`[EnhancedScraper] Completed in ${elapsed}ms | Images: ${allImages.length} | Products: ${uniqueProducts.length} | Services: ${allServices.length} | Testimonials: ${uniqueTestimonials.length}`);
@@ -1716,8 +2640,8 @@ export class EnhancedScraperService {
         logo,
         heroImage,
         galleryImages,
-        primaryColor: colors.primary,
-        secondaryColor: colors.secondary,
+        primaryColor: finalColors.primary,
+        secondaryColor: finalColors.secondary,
         businessType,
         services: allServices.slice(0, 10),
         features: allFeatures.slice(0, 10),

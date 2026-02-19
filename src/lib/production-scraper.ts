@@ -2161,9 +2161,18 @@ function detectWebsiteBusinessType(html: string, url: string): ScrapedData['busi
     if (lowerHtml.includes(kw)) typeScores['fitness'] += 2;
   }
 
-  // Beauty/spa indicators (need strong signals)
-  const beautyKeywords = ['hair salon', 'beauty salon', 'spa services', 'nail salon', 'massage therapy', 'skincare treatment', 'beauty treatment', 'manicure', 'pedicure', 'hair styling'];
-  for (const kw of beautyKeywords) {
+  // Beauty/spa indicators - PRIORITY DETECTION for perfumes, fragrances, cosmetics
+  // Use very high scores for perfume keywords to ensure proper classification
+  const beautyStrong = ['perfume', 'parfum', 'fragrance', 'cologne', 'eau de toilette', 'eau de parfum', 'scent'];
+  for (const kw of beautyStrong) {
+    if (lowerHtml.includes(kw)) typeScores['beauty'] += 6; // High score to override other signals
+  }
+  const beautyCosmetics = ['cosmetics', 'makeup', 'lipstick', 'foundation', 'beauty products'];
+  for (const kw of beautyCosmetics) {
+    if (lowerHtml.includes(kw)) typeScores['beauty'] += 4;
+  }
+  const beautySalon = ['hair salon', 'beauty salon', 'spa services', 'nail salon', 'massage therapy', 'skincare treatment', 'beauty treatment', 'manicure', 'pedicure', 'hair styling', 'skincare', 'body care'];
+  for (const kw of beautySalon) {
     if (lowerHtml.includes(kw)) typeScores['beauty'] += 2;
   }
 
@@ -2201,6 +2210,16 @@ function detectWebsiteBusinessType(html: string, url: string): ScrapedData['busi
   if (/shop|store|buy/i.test(lowerUrl)) typeScores['ecommerce'] += 2;
   if (/restaurant|cafe|food|dine/i.test(lowerUrl)) typeScores['restaurant'] += 2;
   if (/garden|landscape|lawn|plumb|roof|cleaning/i.test(lowerUrl)) typeScores['service'] += 3;
+  if (/perfume|parfum|fragrance|cosmetic|beauty/i.test(lowerUrl)) typeScores['beauty'] += 4;
+
+  // PRIORITY CHECKS: Handle specific cases before general scoring
+  // If strong beauty/perfume signals are found, prioritize beauty over ecommerce/fitness
+  if (typeScores['beauty'] >= 6) {
+    // This indicates perfume/fragrance keywords were found
+    // Even if ecommerce or fitness scores are high, this should be beauty
+    console.log('[Business Type] Strong perfume/beauty signals detected, classifying as beauty');
+    return 'beauty';
+  }
 
   // Find the highest scoring type (require minimum score of 2)
   let maxScore = 0;
@@ -2219,6 +2238,7 @@ function detectWebsiteBusinessType(html: string, url: string): ScrapedData['busi
 function detectBusinessTypeFromBio(bio: string = '', category: string = ''): ScrapedData['businessType'] {
   const combined = `${bio} ${category}`.toLowerCase();
 
+  if (/perfume|parfum|fragrance|cologne|scent|cosmetic/i.test(combined)) return 'beauty';
   if (/shop|store|retail|fashion|clothing|jewelry/i.test(combined)) return 'ecommerce';
   if (/restaurant|food|chef|cuisine|dining|bakery|cafe/i.test(combined)) return 'restaurant';
   if (/doctor|clinic|medical|health|dental|therapy/i.test(combined)) return 'healthcare';
