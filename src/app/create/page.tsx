@@ -526,6 +526,14 @@ export default function CreatePage() {
             </div>
             <span className="text-lg font-bold text-white tracking-tight">HackSquad</span>
           </Link>
+          {/* Back to Dashboard Button */}
+          <Link 
+            href="/dashboard" 
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-150"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Dashboard</span>
+          </Link>
           <span className="text-xs text-pink-400/70 border border-pink-500/20 px-3 py-1 rounded-full bg-pink-500/5">
             Website Builder
           </span>
