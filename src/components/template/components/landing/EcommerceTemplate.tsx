@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 interface EcommerceTemplateProps {
+  siteId?: string;
   data: BusinessData;
 }
 
@@ -30,7 +31,7 @@ function hex2rgb(hex: string) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function EcommerceTemplate({ data }: EcommerceTemplateProps) {
+export default function EcommerceTemplate({ data, siteId }: EcommerceTemplateProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [formState, setFormState] = useState({ name: "", email: "", message: "" });
   const [formSent, setFormSent] = useState(false);
@@ -48,11 +49,12 @@ export default function EcommerceTemplate({ data }: EcommerceTemplateProps) {
 
   async function handleContact(e: React.FormEvent) {
     e.preventDefault();
+    if (!siteId) { setFormSent(true); return; }
     try {
       await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formState.name, email: formState.email, message: formState.message, source: "contact_form" }),
+        body: JSON.stringify({ siteId, name: formState.name, email: formState.email, message: formState.message, source: "contact_form" }),
       });
     } catch { /* silently continue */ }
     setFormSent(true);

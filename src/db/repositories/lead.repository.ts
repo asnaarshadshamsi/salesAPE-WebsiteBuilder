@@ -72,6 +72,7 @@ export class LeadRepository {
     phone?: string;
     message?: string;
     variant?: string;
+    source?: string;
   }): Promise<Lead> {
     return await prisma.lead.create({
       data: {
@@ -81,6 +82,7 @@ export class LeadRepository {
         phone: data.phone || null,
         message: data.message || null,
         variant: data.variant || null,
+        source: data.source || null,
         status: 'NEW',
       },
     });

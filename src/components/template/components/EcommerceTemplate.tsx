@@ -51,6 +51,12 @@ function getLeadCopy(businessType: string, brandName?: string): LeadCopy {
  * Returns the most specific copy-type key to pass to getLeadCopy().
  */
 function inferCopyTypeFromData(data: BusinessData, declaredType: string): string {
+  // If the declared type is already a known specific type (not generic), honour it directly.
+  const specificTypes = ['perfume', 'jewelry', 'jewellery', 'flowershop', 'fitness', 'spa',
+    'beauty', 'photography', 'events', 'catering', 'petcare', 'barbershop',
+    'fashion', 'clothing', 'boutique', 'apparel', 'restaurant', 'food', 'cafe', 'bakery'];
+  if (specificTypes.some(t => declaredType.includes(t))) return declaredType;
+
   // Collect all readable text from the stored template data
   const corpus = [
     (data as any).brand?.tagline,
@@ -63,23 +69,25 @@ function inferCopyTypeFromData(data: BusinessData, declaredType: string): string
     ...(((data as any).features?.items || []) as any[]).map((f: any) => `${f.title} ${f.description}`),
   ].filter(Boolean).join(' ').toLowerCase();
 
-  // Ordered from most-specific to prevent cross-matching
-  const signals: [string, string[]][] = [
-    ['perfume',     ['perfume', 'parfum', 'fragrance', 'scent', 'eau de', 'oud', 'attar', 'cologne', 'sillage', 'aroma', 'aromatic']],
-    ['jewelry',     ['jewelry', 'jewellery', 'diamond', 'gemstone', 'necklace', 'bracelet', 'ring', 'bespoke jewel', 'artisan jewel']],
-    ['flowershop',  ['flower', 'floral', 'bouquet', 'arrangement', 'bloom', 'petal', 'florist']],
-    ['fitness',     ['gym', 'fitness', 'workout', 'membership', 'personal trainer', 'strength', 'cardio', 'muscle']],
-    ['spa',         ['spa', 'massage', 'facial', 'relaxation', 'wellness treatment', 'body wrap']],
-    ['beauty',      ['salon', 'hair colour', 'manicure', 'pedicure', 'nail', 'lash', 'brow', 'waxing', 'threading']],
-    ['photography', ['photography', 'portrait', 'shoot', 'photographer', 'lens', 'studio session']],
-    ['events',      ['event planning', 'corporate event', 'wedding planner', 'venue', 'event management']],
-    ['catering',    ['catering', 'caterer', 'buffet', 'event dining', 'corporate lunch']],
-    ['petcare',     ['pet', 'grooming', 'veterinary', 'dog', 'cat', 'animal care']],
-    ['barbershop',  ['barber', 'haircut', 'fade', 'shave', 'grooming']],
+  // Ordered from most-specific to prevent cross-matching.
+  // Each entry: [type, primaryKeywords (need 2+ hits OR 1 primary), secondaryKeywords (boost only)]
+  const signals: [string, string[], number][] = [
+    ['perfume',     ['parfum', 'fragrance', 'eau de', 'oud', 'attar', 'cologne', 'sillage', 'perfume'], 2],
+    ['jewelry',     ['jewelry', 'jewellery', 'diamond', 'gemstone', 'necklace', 'bracelet', 'ring'], 2],
+    ['flowershop',  ['bouquet', 'florist', 'flower arrangement', 'bloom', 'floral design'], 1],
+    ['fitness',     ['gym', 'fitness', 'personal trainer', 'strength training', 'cardio', 'workout plan'], 2],
+    ['spa',         ['spa', 'massage', 'facial treatment', 'body wrap', 'wellness centre'], 2],
+    ['beauty',      ['hair salon', 'manicure', 'pedicure', 'lash extension', 'brow', 'waxing'], 2],
+    ['photography', ['photography', 'portrait session', 'photo shoot', 'photographer'], 2],
+    ['events',      ['event planning', 'corporate event', 'wedding planner', 'event management'], 1],
+    ['catering',    ['catering', 'caterer', 'event dining', 'corporate lunch'], 1],
+    ['petcare',     ['veterinary', 'pet grooming', 'animal care'], 1],
+    ['barbershop',  ['barber', 'haircut', 'fade', 'straight shave'], 2],
   ];
 
-  for (const [type, keywords] of signals) {
-    if (keywords.some(kw => corpus.includes(kw))) return type;
+  for (const [type, keywords, threshold] of signals) {
+    const hits = keywords.filter(kw => corpus.includes(kw)).length;
+    if (hits >= threshold) return type;
   }
 
   return declaredType; // nothing matched — honour the original type

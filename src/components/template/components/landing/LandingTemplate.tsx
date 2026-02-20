@@ -17,9 +17,10 @@ import FooterSection from "./FooterSection";
 
 interface LandingTemplateProps {
   data: BusinessData;
+  siteId?: string;
 }
 
-const LandingTemplate = ({ data }: LandingTemplateProps) => {
+const LandingTemplate = ({ data, siteId }: LandingTemplateProps) => {
   return (
     <DynamicThemeProvider
       primaryColor={data.brand.primaryColor}
@@ -51,6 +52,7 @@ const LandingTemplate = ({ data }: LandingTemplateProps) => {
               address={data.contact.address}
               businessName={data.brand.name}
               businessType={data.brand.businessType}
+              siteId={siteId}
             />
           )}
           {data.cta && <CtaSection data={data.cta} />}
