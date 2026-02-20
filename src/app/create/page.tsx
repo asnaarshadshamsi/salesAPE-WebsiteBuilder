@@ -961,7 +961,7 @@ export default function CreatePage() {
         <main className="relative z-10 flex-1 flex overflow-hidden">
 
           {/* -- Left sidebar -- */}
-          <aside className="w-72 flex-shrink-0 border-r border-white/5 flex flex-col p-6 gap-4">
+          <aside className="w-72 flex-shrink-0 border-r border-white/5 flex flex-col p-6 gap-4 overflow-y-auto">
             {/* Extraction success badge */}
             {dataExtracted && !isEditMode && (
               <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20">
