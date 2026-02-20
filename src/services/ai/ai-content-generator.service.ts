@@ -548,7 +548,7 @@ JSON output:`;
           'Competitive Pricing',
           'Timely Delivery',
         ],
-        aboutTemplate: '{name} provides professional {businessType} services with a commitment to quality and customer satisfaction. We deliver reliable solutions tailored to your needs.',
+        aboutTemplate: '{name} was built on a foundation of quality and genuine care for every customer we serve. From day one, our mission has been simple: deliver outstanding results and build lasting relationships. Our team brings expertise, dedication, and a personal touch to every project — because we know that your success is our success.',
         sampleTestimonials: [
           { name: 'Brian Cooper', text: 'Excellent service from start to finish. Very professional and efficient.', rating: 5 },
           { name: 'Michelle Young', text: 'They exceeded our expectations. Would definitely recommend!', rating: 5 },

@@ -619,7 +619,27 @@ function getFallbackSubheadline(context: BusinessContext): string {
 }
 
 function getFallbackAboutText(context: BusinessContext): string {
-  return `${context.name} is committed to providing exceptional ${context.businessType} services${context.city ? ` in ${context.city}` : ''}. ${context.description || ''}\n\nWe take pride in delivering personalized solutions that meet your unique needs. Our team is dedicated to ensuring your complete satisfaction with every interaction.\n\nContact us today to learn how we can help you achieve your goals.`;
+  const name = context.name;
+  const city = context.city ? ` in ${context.city}` : '';
+  const services = context.services?.slice(0, 3).join(', ');
+
+  const foodTypes = ['restaurant', 'cafe', 'bakery', 'catering', 'food', 'bistro', 'diner', 'eatery', 'grill', 'pizzeria'];
+  const isFoodBusiness = foodTypes.some(t => (context.businessType || '').toLowerCase().includes(t));
+
+  if (isFoodBusiness) {
+    return `${name} was born from a love of great food and warm hospitality${city}. From the very first day we opened our doors, our mission has been simple: to create meals that bring people together and moments worth savouring.\n\nEvery ingredient we use is chosen with care, and every dish is prepared with the attention to detail that our guests deserve. Whether you're joining us for a quiet dinner, a family celebration, or a quick bite on the go, we pour the same passion into every plate.\n\nWe believe food is more than sustenance — it's connection, comfort, and joy. We invite you to experience ${name} and taste the difference that genuine care makes.`;
+  }
+
+  const typeAbout: Record<string, string> = {
+    fitness: `${name} was founded on a simple belief: that everyone deserves access to expert-led fitness${city}. We combine state-of-the-art facilities, qualified trainers, and a supportive community to help you reach your goals — whatever they may be.\n\nFrom beginner-friendly group classes to advanced personal training programs, we tailor our approach to suit your pace and ambitions. Our coaches are here to guide, motivate, and celebrate every milestone with you.\n\nJoin the ${name} family and discover what you're truly capable of. Your transformation starts here.`,
+    beauty: `${name} is a sanctuary for self-care${city}. Founded by passionate beauty professionals, we've built a space where our clients come to relax, be pampered, and leave feeling their very best.\n\nWe offer a full range of premium treatments — from signature facials and therapeutic massages to precision hair colour and nail artistry. Every treatment is personalised to your unique needs.\n\nAt ${name}, we believe that feeling beautiful starts with being cared for. We'd love to welcome you.`,
+    ecommerce: `${name} was created for people who value quality and style${city}. We curate every product with intention, offering a thoughtfully selected range that combines craftsmanship, lasting value, and contemporary design.\n\nWe work with trusted makers and artisans to ensure every item you receive is exactly as described — beautiful, well-made, and worth every penny.\n\nShopping at ${name} means choosing quality you can feel. Browse our collection and discover your next favourite piece.`,
+  };
+
+  if (typeAbout[context.businessType]) return typeAbout[context.businessType];
+
+  // Generic fallback — still much better than the old placeholder
+  return `${name} has been serving ${context.description ? `${context.description.slice(0, 80).toLowerCase()}` : 'our community'}${city} with a commitment to quality that never wavers.\n\n${services ? `We specialise in ${services}, delivering results that make a real difference for every client we work with.` : 'Our team delivers results that make a real difference for every client we work with.'}\n\nWe'd love to hear from you. Get in touch today and let's talk about how ${name} can help you.`;
 }
 
 function getFallbackMetaDescription(context: BusinessContext): string {

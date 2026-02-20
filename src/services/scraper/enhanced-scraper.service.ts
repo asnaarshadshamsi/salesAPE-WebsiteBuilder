@@ -72,7 +72,57 @@ function resolveUrl(url: string, baseUrl: string): string {
 }
 
 function stripTags(html: string): string {
-  return html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&#39;/gi, "'").replace(/&quot;/gi, '"').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    // Named dashes / special chars common in page titles
+    .replace(/&ndash;/gi, '–')
+    .replace(/&mdash;/gi, '—')
+    .replace(/&bull;/gi, '·')
+    .replace(/&#8211;/g, '–')
+    .replace(/&#8212;/g, '—')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Strip common page-title suffixes added by CMSes / shop platforms.
+ * e.g. "Peirama Parfums – peiramaparfums" → "Peirama Parfums"
+ *      "My Shop | Powered by Shopify" → "My Shop"
+ *      "Home - My Brand" → "My Brand" (only if Home is the prefix)
+ */
+function cleanPageTitle(title: string): string {
+  if (!title) return title;
+  // Split on common separators –, —, |, ·, :: and take the longest meaningful part
+  const parts = title
+    .split(/\s*[–—|·:]{1,2}\s*/)
+    .map(p => p.trim())
+    .filter(p => p.length > 1);
+
+  if (parts.length <= 1) {
+    // Single-separator fallback: split on " - " (space-dash-space) only, avoid splitting on hyphens mid-word
+    const dashParts = title.split(/ - /).map(p => p.trim()).filter(Boolean);
+    if (dashParts.length > 1) {
+      // Skip generic first words like "Home", "Welcome"
+      const skip = /^(home|welcome|index|main|shop)$/i;
+      const meaningful = dashParts.find(p => !skip.test(p)) || dashParts[0];
+      return meaningful;
+    }
+    return title;
+  }
+
+  // Remove purely generic / short parts that are just the website slug/hostname
+  const genericRe = /^(home|welcome|shop|store|index|official site|official website|powered by shopify|\d{1,4})$/i;
+  const nonGeneric = parts.filter(p => !genericRe.test(p));
+  if (nonGeneric.length === 0) return parts[0];
+
+  // Return the longest non-generic part — usually the brand name is the longest meaningful piece
+  return nonGeneric.reduce((a, b) => (a.length >= b.length ? a : b));
 }
 
 function cleanHtml(html: string): string {
@@ -147,6 +197,21 @@ function extractAllImages(html: string, baseUrl: string): ScrapedImage[] {
     if (url.includes('pixel') || url.includes('track') || url.includes('analytics')) continue;
     if (url.includes('facebook.com/tr') || url.includes('google-analytics') || url.includes('doubleclick')) continue;
     if (url.endsWith('.svg') && (w && w < 40)) continue; // Skip small SVG icons
+
+    // Skip social-media platform icons / logos (CDN-hosted or filename-based)
+    const urlLower = url.toLowerCase();
+    const socialIconPatterns = [
+      /\/(?:facebook|fb|instagram|ig|twitter|x-logo|tiktok|youtube|yt|linkedin|pinterest|snapchat|whatsapp|telegram|reddit|discord|vimeo|spotify)[-_.](?:logo|icon|badge|share|button|social|btn|link)[^/]*\.(png|jpg|jpeg|webp|svg|gif)/i,
+      /(?:facebook|twitter|instagram|tiktok|youtube|linkedin|pinterest|snapchat|whatsapp)[-_]?(logo|icon|btn|badge|share)\d*\.(png|jpg|jpeg|webp|svg)/i,
+      /\/social[-_]?(icons?|logos?|media|links?)\//i,
+      /\/icons?\/(facebook|twitter|instagram|tiktok|youtube|linkedin|pinterest|snapchat|whatsapp|social)/i,
+      // Exact domain CDN assets (e.g. connect.facebook.net, static.cdninstagram.com)
+      /^https?:\/\/(?:[a-z0-9-]+\.)?(facebook|instagram|twitter|tiktok|linkedin|pinterest|snapchat)\.(?:com|net)\//i,
+    ];
+    if (socialIconPatterns.some(re => re.test(urlLower))) {
+      console.log('[extractAllImages] Skip social icon:', url.slice(0, 80));
+      continue;
+    }
 
     const alt = altMatch ? altMatch[1] : '';
     const ctx = classMatch ? classMatch[1] : '';
@@ -599,11 +664,17 @@ async function extractShopifyProducts(baseUrl: string): Promise<Array<{
         description = description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
         description = description.substring(0, 300);
         
+        // Shopify pricing: variant.price = current selling price, compare_at_price = original (higher) price
+        // Template expects: price = original/higher price (crossed out), salePrice = current/lower price
+        const currentPrice = variant.price ? parseFloat(variant.price) : undefined;
+        const comparePrice = variant.compare_at_price ? parseFloat(variant.compare_at_price) : undefined;
+        const isOnSale = comparePrice && currentPrice && comparePrice > currentPrice;
+
         products.push({
           name: product.title,
           description: description || undefined,
-          price: variant.price ? parseFloat(variant.price) : undefined,
-          salePrice: variant.compare_at_price ? parseFloat(variant.compare_at_price) : undefined,
+          price: isOnSale ? comparePrice : currentPrice,        // original price (or current if no sale)
+          salePrice: isOnSale ? currentPrice : undefined,       // sale price only when discounted
           image: image,
           category: product.product_type || product.vendor || undefined,
         });
@@ -1495,7 +1566,8 @@ const PLATFORM_FINGERPRINTS: Record<string, { type: BusinessType; confidence: nu
 
 const NAVIGATION_PATTERNS: Record<BusinessType, RegExp[]> = {
   restaurant: [
-    /\b(menu|menus|food-menu|drinks|wine-list|order-online|delivery|takeout|reservations?|book-table)\b/i,
+    // 'delivery' and 'order-online' excluded — too generic for ecommerce/fashion sites
+    /\b(menu|menus|food-menu|drinks|wine-list|takeout|reservations?|book-table)\b/i,
   ],
   beauty: [
     /\b(services|treatments|stylists|hair|nails|spa|facials?|massage|waxing|book-appointment|pricing)\b/i,
@@ -1642,14 +1714,21 @@ const CLASSIFICATION_MODELS: CategoryModel[] = [
     signals: [
       { re: RX.any("\\b(menu|our menu|drinks menu|lunch menu|dinner menu|breakfast menu|tasting menu|chef'?s special|food menu|wine list|view menu)\\b"), weight: 8 },
       { re: RX.any("\\b(book a table|reservation(s)?|opentable|resy|table for \\d+|reserve now|make reservation)\\b"), weight: 8 },
-      { re: RX.any("\\b(takeout|take-away|delivery|order online|pickup|ubereats|doordash|foodpanda|deliveroo|grubhub|order now)\\b"), weight: 7 },
+      // Note: 'delivery' intentionally excluded — too generic (used by fashion/ecommerce).
+      // Only explicit food-delivery brands and food-specific terms score here.
+      { re: RX.any("\\b(takeout|take-away|order online|pickup|ubereats|doordash|foodpanda|deliveroo|grubhub)\\b"), weight: 7 },
       { re: RX.any("\\b(restaurant|bistro|cafe|cafeteria|dining|cuisine|culinary|gastronomic|eatery)\\b"), weight: 5 },
       { re: RX.any("\\b(starters?|appetizers?|entrees?|mains?|desserts?|sides?|courses?|prix fixe)\\b"), weight: 4 },
       { re: RX.any("\\b(dine-in|dine in|eat in|fast food|quick service|table service)\\b"), weight: 4 },
+      // 'delivery' only scores here when combined with explicit food context (low weight)
+      { re: RX.any("\\b(food delivery|meal delivery|restaurant delivery|dinner delivery)\\b"), weight: 4 },
       { re: /\/(menu|reservations?|order|delivery|dine|locations)\b/i, weight: 6, scope: "url" },
     ],
     negatives: [
       { re: RX.any("\\b(restaurant management|restaurant software|pos system|inventory management)\\b"), weight: 5 },
+      // Strong fashion/retail signals should prevent restaurant classification
+      { re: RX.any("\\b(fashion|clothing|apparel|outfit|wear|dress(es)?|shirt|pants|jeans|shoes|sneakers|accessories|handbag|kurta|shalwar|lawn collection|pret|unstitched|stitched)\\b"), weight: 4 },
+      { re: RX.any("\\b(add to cart|checkout|buy now|shop now|product(s)?|collection(s)?|free shipping|size guide|returns policy)\\b"), weight: 3 },
     ],
   },
 
@@ -1986,6 +2065,23 @@ function applyVetoRules(
     console.log('[Veto] Strong perfume/fragrance signals, blocking fitness');
     return { vetoed: true, type: 'beauty', reason: 'Perfume/fragrance business detected' };
   }
+
+  // VETO RULE 7: Strong ecommerce checkout signals with cart navigation → ecommerce beats restaurant
+  // Prevents fashion/retail sites from being misclassified as restaurant due to 'delivery' keyword
+  if (
+    scores['ecommerce'] >= 15 &&
+    navSignals.hasCart &&
+    scores['restaurant'] > scores['ecommerce']
+  ) {
+    const hasFoodMenuInNav = navSignals.hasMenu; // nav has 'menu' or 'food' link
+    const hasFoodDeliveryBrand = /\b(ubereats|doordash|foodpanda|deliveroo|grubhub|toasttab)\b/i.test(
+      JSON.stringify(navSignals.links)
+    );
+    if (!hasFoodMenuInNav && !hasFoodDeliveryBrand) {
+      console.log('[Veto] Strong ecommerce + cart detected without food menu, blocking restaurant');
+      return { vetoed: true, type: 'ecommerce', reason: 'E-commerce store with cart navigation (no food menu detected)' };
+    }
+  }
   
   return { vetoed: false };
 }
@@ -2096,7 +2192,8 @@ function classifyWebsite({
     // SPECIAL CASE: Restaurant using ecommerce platforms (food delivery)
     if (platform.type === 'ecommerce') {
       // Check for strong restaurant indicators
-      const hasRestaurantKeywords = /\b(menu|food|restaurant|cafe|dining|delivery|takeout|chef|cuisine|dishes?|meals?|eat|dine)\b/i.test(T);
+      // NOTE: 'delivery' excluded here — too generic for fashion/ecommerce sites
+      const hasRestaurantKeywords = /\b(menu|food|restaurant|cafe|dining|takeout|chef|cuisine|dishes?|meals?|eat|dine|burger|pizza|steak|bistro)\b/i.test(T);
       const hasMenuPage = navigationLinks.some(link => /menu|food/i.test(link));
       const hasRestaurantSchema = /"@type"\s*:\s*"(Restaurant|FoodEstablishment)"/i.test(J);
       
@@ -2192,13 +2289,17 @@ function classifyWebsite({
     }
   }
   
-  // Restaurant boost when using ecommerce platforms for food delivery
+  // Restaurant boost when using ecommerce platforms for ACTUAL food delivery
+  // Requires multiple strong food signals — 'delivery' alone is NOT enough (too generic)
   if (platform.type === 'ecommerce' && platform.confidence >= 85) {
-    const hasRestaurantKeywords = /\b(menu|food|restaurant|cafe|dining|delivery|takeout|chef|cuisine|dishes?|meals?|eat|dine|burger|pizza|chicken|fish|steak|dessert|breakfast|lunch|dinner)\b/i.test(T);
+    // Strict food-specific keywords (delivery intentionally excluded)
+    const hasFoodSpecificKeywords = /\b(menu|food|restaurant|cafe|dining|takeout|chef|cuisine|dishes?|meals?|eat|dine|burger|pizza|chicken|steak|dessert|breakfast|lunch|dinner|bistro)\b/i.test(T);
     const hasMenuPage = navigationLinks.some(link => /menu|food/i.test(link));
-    const hasRestaurantNav = /\b(menu|food|order[-\s]online|delivery|takeout)\b/i.test(navigationLinks.join(' '));
+    const hasRestaurantNav = /\b(menu|food|order[-\s]online|takeout)\b/i.test(navigationLinks.join(' '));
+    const hasFoodDeliveryPlatform = /\b(ubereats|doordash|foodpanda|deliveroo|grubhub|toasttab|opentable)\b/i.test(T);
     
-    if (hasRestaurantKeywords || hasMenuPage || hasRestaurantNav) {
+    // Require: explicit menu page in nav OR food delivery platform integration OR (food keywords AND restaurant nav)
+    if (hasMenuPage || hasFoodDeliveryPlatform || (hasFoodSpecificKeywords && hasRestaurantNav)) {
       const boost = 40; // Strong boost to overcome platform detection
       scores['restaurant'] = (scores['restaurant'] || 0) + boost;
       reasons.push(`Restaurant boost: Using ${platform.platform} for food ordering (boost: ${boost})`);
@@ -2674,7 +2775,7 @@ export class EnhancedScraperService {
       console.log(`[EnhancedScraper] Completed in ${elapsed}ms | Images: ${allImages.length} | Products: ${uniqueProducts.length} | Services: ${allServices.length} | Testimonials: ${uniqueTestimonials.length}`);
 
       return {
-        name: homeText.title || new URL(url).hostname,
+        name: cleanPageTitle(homeText.title) || new URL(url).hostname,
         description: homeText.metaDescription || aboutContent || '',
         logo,
         heroImage,

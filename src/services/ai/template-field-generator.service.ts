@@ -167,22 +167,38 @@ export class TemplateFieldGeneratorService {
     const year = new Date().getFullYear();
     
     // Specific instructions based on business type
+    const foodTypes = ['restaurant', 'cafe', 'bakery', 'catering', 'food', 'pizzeria', 'bistro', 'diner', 'eatery', 'bar', 'pub', 'grill', 'steakhouse', 'sushi', 'fastfood', 'takeaway', 'foodtruck'];
+    const isFoodBusiness = foodTypes.some(t => merged.businessType?.toLowerCase().includes(t)) ||
+      (merged.rawText || '').toLowerCase().includes('menu') ||
+      ['dine-in', 'dine in', 'takeout', 'delivery', 'catering'].some(w => merged.services.map(s => s.toLowerCase()).some(s => s.includes(w)));
+
     let businessSpecificInstructions = '';
     if (merged.businessType === 'fitness') {
       businessSpecificInstructions = 'IMPORTANT FOR FITNESS/GYM: Focus on transformation and membership programs. Memberships are SERVICES not products. Use fitness-oriented CTAs.\\n';
     } else if (merged.businessType === 'ecommerce') {
       businessSpecificInstructions = 'IMPORTANT FOR ECOMMERCE: Include products section with items, prices, categories. Use shopping CTAs.\\n';
+    } else if (isFoodBusiness) {
+      businessSpecificInstructions = `IMPORTANT FOR FOOD/RESTAURANT BUSINESS:
+- The "services" section represents the MENU or dining OPTIONS (e.g. Dine-In, Takeout, Delivery, Catering, Breakfast, Lunch, Dinner, Chef Specials, Seasonal Menu).
+- Each service item MUST have a mouth-watering, food-specific description that highlights the experience, ingredients, atmosphere, or convenience. NEVER use generic phrases like "Professional X solutions tailored to your needs".
+- Use sensory and emotional language (e.g. "Savour the warmth of freshly baked bread", "Experience the sizzle of our signature grill", "Enjoy restaurant-quality meals in the comfort of your home").
+- services.title should be something like "Our Menu", "What We Offer", "The Experience", or "How We Serve You".
+- services.subtitle should be a 1-sentence food-themed teaser.
+- The about.description MUST be rewritten from scratch as a warm, inviting story about the restaurant — its founding, cuisine philosophy, and what makes it special. Do NOT copy scraped text verbatim.
+- nav.links should use food-relevant labels: Menu, About, Gallery, Reservations, Contact (not generic "Services").
+`;
     }
 
     return `You are an expert copywriter and web designer. Based on the scraped website data below, generate a COMPLETE website content JSON for a landing page.
 
 RULES:
-1. Generate NEW, compelling copy — do NOT just copy scraped text verbatim.
+1. Generate NEW, compelling copy — do NOT just copy scraped text verbatim. Rewrite everything in brand-appropriate language.
 2. Keep the same brand tone and style detected from the content.
-3. Fill EVERY section — no empty strings.
-4. If testimonials are missing, generate 3 realistic ones relevant to this ${merged.businessType} business.
-5. If services are missing, infer 4-6 services from the scraped content.
-6. If features are missing, generate 4 relevant features.
+3. Fill EVERY section — no empty strings or placeholder text.
+4. If testimonials are missing, generate 3 realistic, specific, glowing testimonials relevant to this exact ${merged.businessType} business.
+5. If services are missing, infer 4-6 services from the scraped content — make each description 2-3 compelling, specific sentences.
+6. If features are missing, generate 4 relevant, specific features with concrete benefits.
+7. Service descriptions MUST be specific to the business type — never generic phrases like "Professional X solutions tailored to your needs" or "We take pride in delivering personalized solutions".
 7. Generate realistic stats (e.g. "500+", "98%", "24/7", "10+").
 8. Use action-oriented CTAs matching the business type.
 9. DO NOT include image URLs in the JSON — images are handled separately.
@@ -292,6 +308,15 @@ Return a JSON object that matches this EXACT schema (no extra keys, no markdown,
     ],
     "socials": [],
     "copyright": "© ${year} ${merged.name}. All rights reserved."
+  },
+  "leadForm": {
+    "eyebrow": "Short section label matching the business (e.g. 'Order Enquiry', 'Fragrance Consultation', 'Book a Session', 'Reserve Your Table', 'Membership Enquiry')",
+    "heading": "Compelling heading for the lead capture form (e.g. 'Find Your Signature Scent', 'Request a Custom Piece', 'Book Your Membership', 'Reserve Your Table') — MUST match the exact nature of this business, NOT a generic phrase",
+    "subheading": "1-2 sentences inviting the visitor to fill in the form, referencing what this business specifically offers (e.g. for a perfume brand: 'Describe the mood or occasions you wear fragrance for and our experts will recommend the perfect scent.'; for a gym: 'Tell us your fitness goals and we'll match you to the ideal membership plan.')",
+    "messagePlaceholder": "Context-specific textarea placeholder that tells the visitor exactly what to write (e.g. for perfume: 'Describe your favourite scent notes — woody, floral, oud? Any occasion in mind?'; for clothing: 'Your size, preferred colour, occasion or any custom requirements…')",
+    "submitLabel": "Action-oriented button label (e.g. 'Find My Scent', 'Send Enquiry', 'Book Free Session', 'Reserve Table', 'Request a Quote')",
+    "successTitle": "Short confirmation heading after submission (e.g. 'Your Enquiry is Sent!', 'Consultation Booked!')",
+    "successMessage": "1-2 sentence follow-up message telling the user what happens next."
   }
 }
 
@@ -343,6 +368,15 @@ JSON:`;
         cta: p.cta || undefined,
         contact: p.contact || undefined,
         footer: p.footer || undefined,
+        leadForm: p.leadForm ? {
+          eyebrow: p.leadForm.eyebrow,
+          heading: p.leadForm.heading,
+          subheading: p.leadForm.subheading,
+          messagePlaceholder: p.leadForm.messagePlaceholder,
+          submitLabel: p.leadForm.submitLabel,
+          successTitle: p.leadForm.successTitle,
+          successMessage: p.leadForm.successMessage,
+        } : undefined,
       };
     } catch (err) {
       console.error('[TemplateGenerator] Failed to parse LLM JSON:', err);
@@ -708,6 +742,69 @@ JSON:`;
     return { links };
   }
 
+  /** Generate a context-aware service/feature description based on business type and item name. */
+  private generateItemDescription(businessType: string, itemName: string, index: number): string {
+    const name = itemName.toLowerCase();
+    const foodTypes = ['restaurant', 'cafe', 'bakery', 'catering', 'food', 'bistro', 'diner', 'eatery', 'grill', 'pizzeria', 'takeaway'];
+    const isFoodBusiness = foodTypes.some(t => businessType.toLowerCase().includes(t));
+
+    if (isFoodBusiness) {
+      // Food-specific service descriptions
+      const foodMap: Record<string, string> = {
+        'dine-in':    'Enjoy a warm, welcoming atmosphere with dishes made fresh to order. Our team is here to make your visit comfortable and memorable.',
+        'dine in':    'Enjoy a warm, welcoming atmosphere with dishes made fresh to order. Our team is here to make your visit comfortable and memorable.',
+        'takeout':    'Craving great food on the go? Order your favourites for pickup — fresh, hot, and ready exactly when you need it.',
+        'take out':   'Craving great food on the go? Order your favourites for pickup — fresh, hot, and ready exactly when you need it.',
+        'takeaway':   'Can\'t dine in? No problem. Our takeaway service lets you enjoy your favourite dishes wherever you are.',
+        'delivery':   'Restaurant-quality meals delivered straight to your door. We take care of the cooking so you can enjoy every bite at home.',
+        'catering':   'Make your next event unforgettable. From intimate dinners to large celebrations, we bring exceptional food and service directly to you.',
+        'breakfast':  'Start your day right with our freshly prepared breakfast menu — from hearty cooked plates to lighter bites and great coffee.',
+        'lunch':      'Treat yourself to a freshly prepared midday meal. Our lunch menu offers hearty flavours without the wait.',
+        'dinner':     'Savour the evening with our carefully crafted dinner menu. Every dish is prepared with premium ingredients and presented with care.',
+        'coffee':     'From perfectly pulled espresso to creamy lattes and seasonal specials, our coffee bar is the perfect spot to pause and unwind.',
+        'dessert':    'Indulge in our handcrafted desserts — sweet finishes made fresh daily to complement your meal perfectly.',
+        'menu':       'Explore a carefully curated selection of dishes made from quality ingredients. There\'s something delicious for everyone.',
+      };
+      // Try exact or partial match
+      for (const [key, desc] of Object.entries(foodMap)) {
+        if (name.includes(key)) return desc;
+      }
+      // Generic food fallback
+      const foodFallbacks = [
+        `Savour the flavours of our ${itemName} — crafted with care and served with pride.`,
+        `Our ${itemName} brings together fresh ingredients and expert preparation for a truly satisfying experience.`,
+        `Experience the best of our ${itemName}, made to delight with every bite.`,
+        `From the first taste to the last, our ${itemName} is designed to impress.`,
+      ];
+      return foodFallbacks[index % foodFallbacks.length];
+    }
+
+    // Non-food type-specific descriptions
+    const typeDescriptions: Record<string, string[]> = {
+      fitness:   [
+        `Transform your body and mindset with our ${itemName} program, guided by certified coaches.`,
+        `Our ${itemName} sessions are designed to challenge, inspire, and get you real results.`,
+        `Whether you're a beginner or an athlete, our ${itemName} is tailored to your goals.`,
+      ],
+      beauty:    [
+        `Unwind and be pampered with our premium ${itemName} treatment, tailored entirely to you.`,
+        `Our ${itemName} service combines expert technique with quality products for outstanding results.`,
+        `Feel refreshed and confident after our signature ${itemName} — because you deserve the best.`,
+      ],
+      ecommerce: [
+        `Discover our curated ${itemName} collection, chosen for quality, style, and lasting value.`,
+        `Every ${itemName} we carry is carefully sourced to meet our high standards.`,
+        `Shop our ${itemName} range and enjoy quality you can see, feel, and trust.`,
+      ],
+    };
+
+    const typeList = typeDescriptions[businessType];
+    if (typeList) return typeList[index % typeList.length];
+
+    // Final generic fallback — at least avoid "solutions tailored to your needs"
+    return `Our ${itemName} service is delivered with expertise, attention to detail, and a commitment to your complete satisfaction.`;
+  }
+
   private generateAbout(merged: MergedData, config: any): BusinessData['about'] {
     const aboutText = merged.aboutContent || merged.description || `${merged.name} is dedicated to providing exceptional ${merged.businessType} services.`;
     return {
@@ -723,7 +820,7 @@ JSON:`;
     const items = featureNames.slice(0, 6).map((f: string, i: number) => ({
       icon: icons[i % icons.length],
       title: f,
-      description: merged.uniqueSellingPoints?.[i] || `Professional ${f.toLowerCase()} solutions tailored to your needs.`,
+      description: merged.uniqueSellingPoints?.[i] || this.generateItemDescription(merged.businessType, f, i),
     }));
     return {
       title: config.featuresTitle,
@@ -766,7 +863,7 @@ JSON:`;
       } else if (isEcommerce) {
         description = `We provide ${s.toLowerCase()} to ensure the best shopping experience.`;
       } else {
-        description = `Professional ${s.toLowerCase()} solutions tailored to your needs.`;
+        description = this.generateItemDescription(merged.businessType, s, i);
       }
       
       return {

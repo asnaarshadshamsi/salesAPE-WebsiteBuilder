@@ -46,6 +46,18 @@ interface ExtractedBusinessData {
   address?: string;
   targetAudience?: string;
   uniqueSellingPoint?: string;
+  // Rich URL-scraper data (populated when user provided a URL in the chatbot)
+  sourceUrl?: string;
+  logo?: string;
+  heroImage?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  galleryImages?: string[];
+  testimonials?: any[];
+  products?: any[];
+  socialLinks?: any;
+  aboutContent?: string;
+  _urlWasUsed?: boolean;
 }
 
 interface AIChatbotOnboardingProps {
@@ -123,6 +135,11 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
           const transcript = event.results[0][0].transcript;
           setCurrentInput(transcript);
           setIsListening(false);
+          // Briefly highlight the input so user knows to review then press Enter / Send
+          if (inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+          }
         };
 
         recognitionInstance.onerror = () => {
@@ -333,27 +350,38 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
 
   const finalizeConversation = (state?: ChatbotState) => {
     setIsGenerating(true);
-    
-    const finalMessage: Message = {
-      id: "final",
-      role: "assistant",
-      content: "Perfect! I have everything I need. Let me generate your website now...",
-      timestamp: new Date()
-    };
+    // The AI already said "Let's generate your website!" — skip the duplicate message.
 
-    setMessages(prev => [...prev, finalMessage]);
+    const resolvedState = state || chatbotState;
+    const profile = resolvedState?.profile;
+    // The extractedProfile holds the full production-scraper output when a URL was given.
+    const scraped = resolvedState?.extractedProfile as any;
+    const urlWasUsed = !!(resolvedState?.urlDetected || scraped?.sourceUrl);
 
-    // Convert ChatbotState to ExtractedBusinessData
-    const profile = state?.profile || chatbotState?.profile;
     const extractedData: ExtractedBusinessData = {
-      name: profile?.name,
-      description: profile?.description,
+      // Core profile (from chatbot answers or merged from scraper)
+      name:         profile?.name,
+      description:  profile?.description,
       businessType: profile?.businessType,
-      services: profile?.services,
-      features: profile?.features,
-      phone: profile?.phone,
-      email: profile?.email,
-      address: profile?.address,
+      services:     profile?.services,
+      features:     profile?.features,
+      phone:        profile?.phone,
+      email:        profile?.email,
+      address:      profile?.address,
+      // Rich scraped fields — only present when URL was provided
+      ...(urlWasUsed && scraped ? {
+        _urlWasUsed:    true,
+        sourceUrl:      resolvedState?.urlDetected || scraped?.sourceUrl,
+        logo:           scraped?.logo,
+        heroImage:      scraped?.heroImage,
+        primaryColor:   scraped?.primaryColor,
+        secondaryColor: scraped?.secondaryColor,
+        galleryImages:  scraped?.galleryImages,
+        testimonials:   scraped?.testimonials,
+        products:       scraped?.products,
+        socialLinks:    scraped?.socialLinks,
+        aboutContent:   scraped?.aboutContent,
+      } : {}),
     };
 
     setTimeout(() => {
@@ -385,14 +413,14 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
   const progress = getProgress();
 
   return (
-    <div className="relative min-h-[700px] bg-zinc-900 rounded-xl border border-zinc-700 overflow-hidden shadow-xl">
+    <div className="relative h-full bg-zinc-900 rounded-xl border border-zinc-700 overflow-hidden shadow-xl">
       {/* Subtle background gradient */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-pink-600/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-600/5 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative flex flex-col h-[700px]">
+      <div className="relative flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center gap-3 p-6 border-b border-zinc-800 bg-zinc-900/50">
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">

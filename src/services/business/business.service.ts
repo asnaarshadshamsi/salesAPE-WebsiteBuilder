@@ -18,6 +18,8 @@ import { generateUniqueSlug } from '../scraper/base-scraper.service';
 import { contentGeneratorService } from '../ai';
 import { templateFieldGeneratorService, type MergedData } from '../ai/template-field-generator.service';
 import { enhancedScraperService, type EnhancedScrapedData } from '../scraper/enhanced-scraper.service';
+import BusinessImageService from '../business-image.service';
+import { aiReclassifyBusinessType } from './business-analyzer.service';
 import { prisma } from '@/db/client';
 import type { BusinessData } from '@/components/template/types/landing';
 
@@ -52,6 +54,15 @@ export class BusinessService {
         console.log('[BusinessService] Scraping source URL for LLM context…');
         scrapedData = await enhancedScraperService.scrapeWebsite(input.sourceUrl);
         console.log(`[BusinessService] Scrape done — confidence: ${scrapedData.confidence}, images: ${scrapedData.scrapedImages.length}`);
+
+        // AI override: correct scraper's keyword-based misclassification (e.g. Asimjofa → ecommerce)
+        const aiType = await aiReclassifyBusinessType(scrapedData.rawText, scrapedData.businessType);
+        if (aiType) {
+          scrapedData.businessType = aiType;
+          // Propagate corrected type to input so the whole pipeline uses it
+          (input as any).businessType = aiType;
+          console.log(`[BusinessService] Scraper type overridden by AI → "${aiType}"`);
+        }
       } catch (err) {
         console.error('[BusinessService] Scraping failed, continuing without:', err);
       }
@@ -92,7 +103,7 @@ export class BusinessService {
           businessType: input.businessType,
           services: JSON.stringify(input.services || content.services),
           phone: input.phone,
-          email: input.email || userEmail,
+          email: input.email || null,
           address: input.address,
           city: input.city,
           calendlyUrl: input.calendlyUrl,
@@ -110,14 +121,16 @@ export class BusinessService {
           slug,
           headline: content.headline,
           subheadline: content.subheadline,
-          aboutText: content.aboutText,
+          aboutText: input.aboutText || content.aboutText,
           ctaText: content.ctaText,
           features: JSON.stringify(input.features || content.features),
           testimonials: input.testimonials ? JSON.stringify(input.testimonials) : null,
           metaDescription: content.metaDescription,
           tagline: content.tagline,
           valuePropositions: content.valuePropositions ? JSON.stringify(content.valuePropositions) : null,
-          serviceDescriptions: content.serviceDescriptions ? JSON.stringify(content.serviceDescriptions) : null,
+          serviceDescriptions: input.serviceDescriptions
+            ? JSON.stringify(input.serviceDescriptions)
+            : (content.serviceDescriptions ? JSON.stringify(content.serviceDescriptions) : null),
           socialMediaBio: content.socialMediaBio,
           templateData: JSON.stringify(templateData),
         },
@@ -201,6 +214,22 @@ export class BusinessService {
       targetAudience: undefined,
       tone: undefined,
     };
+
+    // ── Gallery supplement: ensure at least 4 high-quality images ────
+    // Scraped galleries are often sparse (0-2 images). Supplement with
+    // business-type-appropriate Unsplash images to fill gaps.
+    if (merged.galleryImages.length < 4) {
+      try {
+        const needed = 8 - merged.galleryImages.length;
+        const extra = await BusinessImageService.getGalleryImages(input.businessType as any, needed);
+        // Combine scraped images first (they're more relevant), then fallbacks
+        merged.galleryImages = [...merged.galleryImages, ...extra].slice(0, 8);
+        console.log(`[BusinessService] Gallery supplemented to ${merged.galleryImages.length} images for type "${input.businessType}"`);
+      } catch (err) {
+        console.error('[BusinessService] Gallery supplement failed, continuing:', err);
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────
 
     // Use LLM-powered generation (falls back to structural assembly internally)
     return await templateFieldGeneratorService.generateWithLLM(merged);

@@ -14,6 +14,27 @@ export type BusinessType =
   | 'realestate' 
   | 'education' 
   | 'startup'
+  // Extended business types
+  | 'perfume'
+  | 'flowershop'
+  | 'cafe'
+  | 'spa'
+  | 'jewelry'
+  | 'photography'
+  | 'barbershop'
+  | 'cleaning'
+  | 'petcare'
+  | 'law'
+  | 'accounting'
+  | 'dental'
+  | 'hotel'
+  | 'events'
+  | 'catering'
+  | 'tech'
+  | 'consulting'
+  | 'bakery'
+  | 'gym'
+  | 'yoga'
   | 'other';
 
 export interface Business {
@@ -71,6 +92,10 @@ export interface Site {
 export interface CreateBusinessInput {
   name: string;
   description: string;
+  /** Pre-generated AI story about text (chatbot flow). When provided, skips re-generation. */
+  aboutText?: string;
+  /** AI-generated per-service descriptions (chatbot flow). */
+  serviceDescriptions?: { name: string; description: string }[];
   logo: string | null;
   heroImage: string | null;
   galleryImages?: string[];

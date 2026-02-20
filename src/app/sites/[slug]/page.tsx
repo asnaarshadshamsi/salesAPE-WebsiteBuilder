@@ -1,8 +1,27 @@
 import { notFound } from "next/navigation";
 import { siteRepository } from "@/db/repositories";
-import { SiteTemplate } from "@/components/SiteTemplate";
+import { ProfessionalSiteTemplate } from "@/components/ProfessionalSiteTemplate";
 import LandingTemplate from "@/components/template/components/landing/LandingTemplate";
+import EcommerceTemplate from "@/components/template/components/EcommerceTemplate";
+import FoodTemplate from "@/components/template/components/FoodTemplate";
 import type { BusinessData } from "@/components/template/types/landing";
+
+// Business types that use the dedicated Ecommerce template
+const ECOMMERCE_TYPES = new Set([
+  'ecommerce','perfume','jewelry','flowershop','beauty','spa',
+  'barbershop','photography','petcare','events',
+]);
+
+// Business types that use the dedicated Food / Restaurant template
+const FOOD_TYPES = new Set([
+  'restaurant','cafe','bakery','catering',
+]);
+
+function pickScraperTemplate(businessType: string): 'ecommerce' | 'food' | 'landing' {
+  if (ECOMMERCE_TYPES.has(businessType)) return 'ecommerce';
+  if (FOOD_TYPES.has(businessType)) return 'food';
+  return 'landing';
+}
 import { WebsiteLaunchCelebration } from "@/components/WebsiteLaunchCelebration";
 import { selectVariant } from "@/lib/ai";
 import { trackPageView } from "@/actions/leads";
@@ -91,6 +110,64 @@ export default async function SitePage({ params }: SitePageProps) {
     featured: p.featured,
   }));
 
+  // Determine which template to render:
+  //  • URL-scraper sites  → LandingTemplate  (completely different, AI-composed layout)
+  //  • AI chatbot sites   → ProfessionalSiteTemplate (keep untouched)
+  const isScraperSite = !!(business.sourceUrl && business.sourceUrl.trim());
+  const rawTemplateData: string | null = site.templateData ?? null;
+
+  if (isScraperSite && rawTemplateData) {
+    let landing: BusinessData | null = null;
+    try {
+      landing = JSON.parse(rawTemplateData) as BusinessData;
+    } catch {
+      console.error('[SitePage] Failed to parse templateData JSON for slug:', slug);
+    }
+
+    if (landing) {
+      const templateKind = pickScraperTemplate(business.businessType);
+      const TemplateComponent =
+        templateKind === 'ecommerce' ? EcommerceTemplate :
+        templateKind === 'food'      ? FoodTemplate :
+                                       LandingTemplate;
+
+      return (
+        <>
+          <WebsiteLaunchCelebration
+            businessName={business.name}
+            siteSlug={site.slug}
+            primaryColor={business.primaryColor}
+          />
+          <BusinessStructuredData
+            business={{
+              name: business.name,
+              description: business.description,
+              logo: business.logo,
+              phone: business.phone,
+              email: business.email,
+              address: business.address,
+              city: business.city,
+              businessType: business.businessType,
+            }}
+            site={{ headline: site.headline, slug: site.slug }}
+            socialLinks={socialLinks}
+          />
+          <WebsiteStructuredData
+            business={{ name: business.name }}
+            site={{ headline: site.headline, slug: site.slug }}
+          />
+          {templateKind === 'ecommerce' ? (
+            <EcommerceTemplate data={landing} siteId={site.id} />
+          ) : templateKind === 'food' ? (
+            <FoodTemplate data={landing} siteId={site.id} />
+          ) : (
+            <LandingTemplate data={landing} />
+          )}
+        </>
+      );
+    }
+  }
+
   return (
     <>
       {/* Launch Celebration Modal (shows on first visit with ?new=true) */}
@@ -123,47 +200,42 @@ export default async function SitePage({ params }: SitePageProps) {
         site={{ headline: site.headline, slug: site.slug }}
       />
       
-      {/* Main Site Template — use templateData directly if available */}
-      {site.templateData ? (
-        <LandingTemplate data={JSON.parse(site.templateData as string) as BusinessData} />
-      ) : (
-        <SiteTemplate
-          site={{
-            id: site.id,
-            slug: site.slug,
-            headline: variant === "A" ? site.headline : (site.subheadline || site.headline),
-            subheadline: site.subheadline || null,
-            aboutText: site.aboutText || null,
-            ctaText: site.ctaText,
-            features,
-            testimonials,
-            variant,
-            // AI-enhanced content
-            tagline: site.tagline || null,
-            valuePropositions,
-            serviceDescriptions,
-          }}
-          business={{
-            name: business.name,
-            description: business.description || null,
-            logo: business.logo,
-            heroImage: business.heroImage,
-            galleryImages,
-            primaryColor: business.primaryColor,
-            secondaryColor: business.secondaryColor,
-            businessType: business.businessType,
-            services,
-            phone: business.phone,
-            email: business.email,
-            address: business.address,
-            city: business.city,
-            calendlyUrl: business.calendlyUrl,
-            socialLinks,
-            openingHours,
-          }}
-          products={products}
-        />
-      )}
+      {/* Professional Site Template — modern, conversion-focused design */}
+      <ProfessionalSiteTemplate
+        site={{
+          id: site.id,
+          slug: site.slug,
+          headline: variant === "A" ? site.headline : (site.subheadline || site.headline),
+          subheadline: site.subheadline || null,
+          aboutText: site.aboutText || null,
+          ctaText: site.ctaText,
+          features,
+          testimonials,
+          variant,
+          tagline: site.tagline || null,
+          valuePropositions,
+          serviceDescriptions,
+        }}
+        business={{
+          name: business.name,
+          description: business.description || null,
+          logo: business.logo,
+          heroImage: business.heroImage,
+          galleryImages,
+          primaryColor: business.primaryColor,
+          secondaryColor: business.secondaryColor,
+          businessType: business.businessType,
+          services,
+          phone: business.phone,
+          email: business.email,
+          address: business.address,
+          city: business.city,
+          calendlyUrl: business.calendlyUrl,
+          socialLinks,
+          openingHours,
+        }}
+        products={products}
+      />
     </>
   );
 }

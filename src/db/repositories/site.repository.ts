@@ -18,7 +18,13 @@ export class SiteRepository {
     return await prisma.site.findUnique({
       where: { slug },
       include: {
-        business: true,
+        business: {
+          include: {
+            products: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        },
       },
     });
   }

@@ -454,18 +454,17 @@ class ChatbotOrchestratorService {
         state.profile.dataSource = {};
       }
       state.profile.dataSource.description = 'user-provided';
-      state.currentQuestion = 'optionalUrl';
+      state.currentQuestion = 'services';
 
-      console.log('[Orchestrator] Description set, moving to optional URL:', {
+      console.log('[Orchestrator] Description set, moving to services:', {
         descriptionLength: description.length,
         nextQuestion: state.currentQuestion,
       });
 
-      // Return new state object
       const newState: ChatbotState = {
         ...state,
-        currentQuestion: 'optionalUrl',
-        profile: { 
+        currentQuestion: 'services',
+        profile: {
           ...state.profile,
           description,
           confidence: state.profile.confidence ? { ...state.profile.confidence } : {},
@@ -475,7 +474,75 @@ class ChatbotOrchestratorService {
 
       return {
         success: true,
-        message: "Perfect! Do you have an existing website or social media page I can extract more info from? (optional - you can say 'skip' or 'no')",
+        message: `What services or products do you offer? List a few separated by commas.\n\nExample: *haircuts, colouring, styling* — or type **skip** to continue.`,
+        state: newState,
+        suggestedActions: ['Skip'],
+      };
+    } else if (currentQuestion === 'services') {
+      const raw = userMessage.trim();
+      const skip = /^(skip|no|none|n\/a)$/i.test(raw);
+      if (!skip && raw.length > 0) {
+        const services = raw.split(/[,;|\n]+/).map(s => s.trim()).filter(s => s.length > 0).slice(0, 10);
+        state.profile.services = services;
+        if (!state.profile.confidence || typeof state.profile.confidence !== 'object') {
+          state.profile.confidence = { overall: 'medium' };
+        }
+        state.profile.confidence.services = 'high';
+        if (!state.profile.dataSource || typeof state.profile.dataSource !== 'object') {
+          state.profile.dataSource = {};
+        }
+        state.profile.dataSource.services = 'user-provided';
+      }
+      state.currentQuestion = 'contact';
+
+      const newState: ChatbotState = {
+        ...state,
+        currentQuestion: 'contact',
+        profile: {
+          ...state.profile,
+          confidence: state.profile.confidence ? { ...state.profile.confidence } : {},
+          dataSource: state.profile.dataSource ? { ...state.profile.dataSource } : {},
+        },
+      };
+
+      return {
+        success: true,
+        message: `Got it! Do you have a **phone number** or **email** you'd like to display on the site?\n\nType them or say **skip** to continue.`,
+        state: newState,
+        suggestedActions: ['Skip'],
+      };
+    } else if (currentQuestion === 'contact') {
+      const raw = userMessage.trim();
+      const skip = /^(skip|no|none|n\/a)$/i.test(raw);
+      if (!skip && raw.length > 0) {
+        const emailMatch = raw.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+        const phoneMatch = raw.match(/(\+?[\d()\s.\-]{7,})/);
+        if (emailMatch) {
+          state.profile.email = emailMatch[1];
+          if (!state.profile.confidence || typeof state.profile.confidence !== 'object') { state.profile.confidence = { overall: 'medium' }; }
+          state.profile.confidence.email = 'high';
+        }
+        if (phoneMatch) {
+          state.profile.phone = phoneMatch[1].trim();
+          if (!state.profile.confidence || typeof state.profile.confidence !== 'object') { state.profile.confidence = { overall: 'medium' }; }
+          state.profile.confidence.phone = 'high';
+        }
+      }
+      state.currentQuestion = 'optionalUrl';
+
+      const newState: ChatbotState = {
+        ...state,
+        currentQuestion: 'optionalUrl',
+        profile: {
+          ...state.profile,
+          confidence: state.profile.confidence ? { ...state.profile.confidence } : {},
+          dataSource: state.profile.dataSource ? { ...state.profile.dataSource } : {},
+        },
+      };
+
+      return {
+        success: true,
+        message: `Almost done! Do you have an existing website or social media page? I can extract images and extra info from it.\n\nPaste a URL or type **skip** to generate now.`,
         state: newState,
         suggestedActions: ['Skip'],
       };

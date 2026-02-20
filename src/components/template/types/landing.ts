@@ -83,6 +83,16 @@ export interface BusinessData {
     question: string;
     answer: string;
   }>;
+  /** AI-generated lead-capture form copy, contextualised to this specific business */
+  leadForm?: {
+    eyebrow?: string;
+    heading?: string;
+    subheading?: string;
+    messagePlaceholder?: string;
+    submitLabel?: string;
+    successTitle?: string;
+    successMessage?: string;
+  };
   footer?: {
     description?: string;
     links?: { label: string; href: string }[];

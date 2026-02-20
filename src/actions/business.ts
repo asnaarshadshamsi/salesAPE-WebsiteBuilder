@@ -86,6 +86,81 @@ export async function analyzeVoiceInput(voiceTranscript: string): Promise<VoiceA
 
 // ==================== GENERATE WEBSITE FROM CHATBOT DATA ====================
 
+/**
+ * Use Cohere to generate a story-type SEO About section and
+ * per-service compelling descriptions in a single call.
+ */
+async function generateAIWebsiteContent(data: {
+  name: string;
+  businessType: string;
+  services: string[];
+  uniqueSellingPoint?: string;
+  targetAudience?: string;
+  city?: string;
+}): Promise<{ aboutStory: string; serviceDescriptions: { name: string; description: string }[] }> {
+  const { cohereGenerate } = await import('@/lib/cohere-ai');
+  const { name, businessType, services, uniqueSellingPoint, targetAudience, city } = data;
+  const serviceList = services.length > 0 ? services.join(', ') : 'professional services';
+
+  const prompt = `You are a professional website copywriter. Write for "${name}", a ${businessType} business${city ? ` in ${city}` : ''}.
+Keywords: ${serviceList}${uniqueSellingPoint ? `. USP: ${uniqueSellingPoint}` : ''}${targetAudience ? `. Target audience: ${targetAudience}` : ''}
+
+TASK 1 - Write a beautiful 3-paragraph About Us story. Warm, SEO-friendly, reads like a brand journey:
+- Paragraph 1: The founding story or mission and values (2 sentences)
+- Paragraph 2: What they excel at, their expertise and offerings (2 sentences)
+- Paragraph 3: What makes them unique + a customer promise (2 sentences)
+
+TASK 2 - For each service listed, write a compelling 1-2 sentence description that highlights outcomes and benefits:
+${services.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+RESPOND IN EXACTLY THIS FORMAT (no extra text):
+ABOUT_START
+[paragraph 1]
+
+[paragraph 2]
+
+[paragraph 3]
+ABOUT_END
+SERVICES_START
+${services.map(s => `${s}||[description]`).join('\n')}
+SERVICES_END`;
+
+  try {
+    const result = await cohereGenerate(prompt, { maxTokens: 900, temperature: 0.65 });
+    if (!result) throw new Error('Empty response');
+
+    // Parse about story
+    const aboutMatch = result.match(/ABOUT_START\n([\s\S]*?)\nABOUT_END/i);
+    const aboutStory = aboutMatch?.[1]?.trim() || '';
+
+    // Parse service descriptions
+    const servicesMatch = result.match(/SERVICES_START\n([\s\S]*?)\nSERVICES_END/i);
+    const servicesText = servicesMatch?.[1]?.trim() || '';
+
+    const serviceDescriptions: { name: string; description: string }[] = services.map(service => {
+      const line = servicesText.split('\n').find(l => l.toLowerCase().startsWith(service.toLowerCase() + '||'));
+      const desc = line?.split('||')[1]?.trim();
+      return {
+        name: service,
+        description: desc || `Professional ${service.toLowerCase()} services designed to deliver outstanding results for every client.`,
+      };
+    });
+
+    return {
+      aboutStory: aboutStory ||
+        `${name} was founded with a simple but powerful mission: to deliver exceptional ${serviceList} to every client.\n\nOur team brings deep expertise in ${businessType}, combining industry knowledge with a genuine passion for customer success.\n\nWhat makes us different is our unwavering commitment to quality — we don't just meet expectations, we exceed them at every turn.`,
+      serviceDescriptions,
+    };
+  } catch (err) {
+    console.error('[generateAIWebsiteContent] Cohere failed, using templates:', err);
+    const EnhancedContentGenerator = (await import('@/services/enhanced-content-generator.service')).default;
+    return {
+      aboutStory: EnhancedContentGenerator.generateAboutText(name, businessType, city),
+      serviceDescriptions: EnhancedContentGenerator.generateServiceDescriptions(businessType, services),
+    };
+  }
+}
+
 // Helper: Analyze chatbot conversation with AI to extract detailed business info
 async function analyzeChatbotConversation(chatbotData: {
   name?: string;
@@ -229,75 +304,87 @@ export async function generateWebsiteFromChatbot(chatbotData: {
     // First, analyze the conversation with AI
     const aiAnalysis = await analyzeChatbotConversation(chatbotData);
     console.log('[generateWebsiteFromChatbot] AI analysis:', aiAnalysis);
-    
-    const { contentGeneratorService } = await import('@/services/ai/content-generator.service');
-    
-    // Generate AI content with refined business info
-    const aiContent = await contentGeneratorService.generateContent({
-      businessName: chatbotData.name || 'My Business',
-      description: aiAnalysis.detailedDescription,
-      businessType: aiAnalysis.refinedBusinessType as any,
+
+    const businessName = chatbotData.name || 'My Business';
+
+    // Resolve the most specific business type:
+    // prefer the raw chatbot type (e.g. "flowershop") over the AI broad type (e.g. "ecommerce")
+    const specificType = resolveBusinessType(chatbotData.businessType) || aiAnalysis.refinedBusinessType;
+
+    // Use EnhancedContentGenerator for type-specific, high-quality copy
+    const EnhancedContentGenerator = (await import('@/services/enhanced-content-generator.service')).default;
+    const city = extractCity(chatbotData.address);
+
+    // Generate rich AI about story + per-service descriptions via a single Cohere call
+    const aiContent = await generateAIWebsiteContent({
+      name: businessName,
+      businessType: specificType,
       services: chatbotData.services || [],
+      uniqueSellingPoint: chatbotData.uniqueSellingPoint,
       targetAudience: chatbotData.targetAudience,
+      city,
     });
 
-    console.log('[generateWebsiteFromChatbot] AI content generated:', aiContent);
+    const aboutText = aiContent.aboutStory;
 
-    // Generate colors based on refined business type
-    const colors = getBusinessTypeColors(aiAnalysis.refinedBusinessType);
+    const headline    = EnhancedContentGenerator.generateHeadline(businessName, specificType);
+    const subheadline = EnhancedContentGenerator.generateSubheadline(businessName, specificType);
+    const ctaText     = EnhancedContentGenerator.generateCTAText(specificType, 'primary');
+    const valueProps  = EnhancedContentGenerator.generateValuePropositions(businessName, specificType);
+
+    console.log('[generateWebsiteFromChatbot] Enhanced content generated for type:', specificType);
+
+    // Generate colors based on resolved business type
+    const colors = getBusinessTypeColors(specificType);
     
-    // Generate images based on AI-extracted search terms
-    const heroImage = generateHeroImage(aiAnalysis.imageSearchTerms[0] || aiAnalysis.refinedBusinessType);
-    const logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(chatbotData.name || 'Business')}&size=200&background=${colors.primary.replace('#', '')}&color=fff&bold=true`;
-    
-    // Generate gallery images based on AI search terms
-    const galleryImages = generateSmartGalleryImages(aiAnalysis.imageSearchTerms);
+    // Fetch type-appropriate images via BusinessImageService (uses Unsplash API + static fallbacks)
+    const BusinessImageService = (await import('@/services/business-image.service')).default;
+    const [heroImage, galleryImages] = await Promise.all([
+      BusinessImageService.getHeroImage(specificType as any),
+      BusinessImageService.getGalleryImages(specificType as any, 8),
+    ]);
+
+    const logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(businessName)}&size=200&background=${colors.primary.replace('#', '')}&color=fff&bold=true`;
 
     // Generate testimonials
-    const testimonials = generateTestimonials(aiAnalysis.refinedBusinessType, chatbotData.name || 'this business');
+    const testimonials = generateTestimonials(specificType, businessName);
 
-    // Create enhanced services with AI-generated descriptions
-    const enhancedServices = (chatbotData.services || []).map((service, index) => ({
-      title: service,
-      description: aiContent.serviceDescriptions?.[index]?.description || 
-                   `Professional ${service.toLowerCase()} services tailored to your needs.`,
-      icon: getServiceIcon(service)
-    }));
+    // Build services list — use AI-generated descriptions from generateAIWebsiteContent
+    const enhancedServices = (chatbotData.services || []).map((service) => {
+      const svcDesc = aiContent.serviceDescriptions.find(sd => sd.name === service);
+      return {
+        title: service,
+        description: svcDesc?.description || `Professional ${service.toLowerCase()} services tailored to your needs.`,
+        icon: getServiceIcon(service),
+      };
+    });
 
-    // Create features from AI content and unique selling point
+    // Create features from value propositions + unique selling point
     const features = [
-      ...(aiContent.features || []).slice(0, 3).map((feature: any) => ({
-        title: typeof feature === 'string' ? feature : feature.title || feature.name,
-        description: typeof feature === 'string' 
-          ? `Experience the best ${feature.toLowerCase()} in the industry.`
-          : feature.description || '',
-        icon: '✨'
-      })),
-      ...(chatbotData.uniqueSellingPoint ? [{
-        title: 'Our Advantage',
-        description: chatbotData.uniqueSellingPoint,
-        icon: '🌟'
-      }] : [])
+      ...valueProps.slice(0, 3).map((v: string) => ({ title: v, description: '', icon: '✨' })),
+      ...(chatbotData.uniqueSellingPoint ? [{ title: 'Our Advantage', description: chatbotData.uniqueSellingPoint, icon: '🌟' }] : []),
     ];
 
     const enrichedData = {
-      name: chatbotData.name || 'My Business',
-      description: aiContent.aboutText || aiAnalysis.detailedDescription,
+      name: businessName,
+      description: aboutText,
       logo,
       heroImage,
       primaryColor: colors.primary,
       secondaryColor: colors.secondary,
-      businessType: aiAnalysis.refinedBusinessType,
+      businessType: specificType,
       services: enhancedServices,
+      // AI-generated per-service descriptions for the Our Services section
+      serviceDescriptions: aiContent.serviceDescriptions,
       features,
       phone: chatbotData.phone || null,
       email: chatbotData.email || null,
       address: chatbotData.address || null,
       testimonials,
       galleryImages,
-      heroHeadline: aiContent.headline || `Welcome to ${chatbotData.name || 'Our Business'}`,
-      heroSubheadline: aiContent.subheadline || aiContent.tagline || aiAnalysis.detailedDescription,
-      ctaText: aiContent.ctaText || 'Get Started',
+      heroHeadline: headline,
+      heroSubheadline: subheadline,
+      ctaText,
       socialLinks: null,
     };
 
@@ -313,24 +400,55 @@ export async function generateWebsiteFromChatbot(chatbotData: {
   }
 }
 
-// Helper: Generate hero image based on search term
-function generateHeroImage(searchTerm: string): string {
-  // Use Unsplash Source API with specific search term
-  const query = encodeURIComponent(searchTerm);
-  return `https://source.unsplash.com/1200x600/?${query}`;
+// Helper: Resolve raw chatbot business type string → EnhancedContentGenerator key
+function resolveBusinessType(raw?: string): string {
+  if (!raw) return '';
+  const t = raw.toLowerCase().replace(/\s+/g, '');
+  const map: Record<string, string> = {
+    flowershop: 'flowershop', florist: 'flowershop', flowerstore: 'flowershop', bouquet: 'flowershop', flowers: 'flowershop',
+    perfume: 'perfume', fragrance: 'perfume', perfumery: 'perfume',
+    cafe: 'cafe', coffee: 'cafe', coffeeshop: 'cafe',
+    bakery: 'bakery', bread: 'bakery', pastry: 'bakery',
+    restaurant: 'restaurant', dining: 'restaurant', eatery: 'restaurant',
+    spa: 'spa', wellness: 'spa', massage: 'spa',
+    beauty: 'beauty', beautysalon: 'beauty', salon: 'beauty',
+    barbershop: 'barbershop', barber: 'barbershop',
+    gym: 'gym', fitness: 'fitness', yoga: 'yoga',
+    jewelry: 'jewelry', jeweler: 'jewelry', jewellery: 'jewelry',
+    photography: 'photography', photographer: 'photography', photostudio: 'photography',
+    dental: 'dental', dentist: 'dental', dentistry: 'dental',
+    hotel: 'hotel', hospitality: 'hotel',
+    law: 'law', lawfirm: 'law', legal: 'law', lawyer: 'law',
+    accounting: 'accounting', accountant: 'accounting', cpa: 'accounting',
+    healthcare: 'healthcare', medical: 'healthcare', clinic: 'healthcare', doctor: 'healthcare',
+    cleaning: 'cleaning', cleaningservice: 'cleaning',
+    petcare: 'petcare', pets: 'petcare', petshop: 'petcare', vet: 'petcare',
+    events: 'events', eventplanning: 'events',
+    catering: 'catering',
+    tech: 'tech', technology: 'tech', software: 'tech',
+    startup: 'startup',
+    consulting: 'consulting', consultant: 'consulting',
+    realestate: 'realestate', property: 'realestate', realtor: 'realestate',
+    education: 'education', school: 'education', tutoring: 'education',
+    ecommerce: 'ecommerce', store: 'ecommerce', shop: 'ecommerce', boutique: 'ecommerce', retail: 'ecommerce',
+    agency: 'agency', digitalagency: 'agency', marketingagency: 'agency',
+  };
+  // Try exact match first
+  if (map[t]) return map[t];
+  // Try partial match
+  for (const [key, val] of Object.entries(map)) {
+    if (t.includes(key) || key.includes(t)) return val;
+  }
+  return t;
 }
 
-// Helper: Generate gallery images based on AI search terms
-function generateSmartGalleryImages(searchTerms: string[]): string[] {
-  if (!searchTerms || searchTerms.length === 0) {
-    searchTerms = ['business', 'office', 'professional', 'team'];
-  }
-  
-  // Use the AI-provided search terms directly
-  return searchTerms.slice(0, 4).map(term => {
-    const query = encodeURIComponent(term);
-    return `https://source.unsplash.com/800x600/?${query}`;
-  });
+// Helper: Extract city from address string
+function extractCity(address?: string | null): string | undefined {
+  if (!address) return undefined;
+  // Simple heuristic: last comma-separated segment often is "City, State ZIP"
+  const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length >= 2) return parts[parts.length - 2];
+  return parts[0] || undefined;
 }
 
 // Helper: Get colors based on business type
@@ -342,23 +460,50 @@ function getBusinessTypeColors(businessType: string): { primary: string; seconda
     shop: { primary: '#ec4899', secondary: '#f472b6' },
     boutique: { primary: '#ec4899', secondary: '#f472b6' },
     // Flowers & Plants
+    flowershop: { primary: '#f472b6', secondary: '#fbbf24' },
     flower: { primary: '#f472b6', secondary: '#fbbf24' },
     flowers: { primary: '#f472b6', secondary: '#fbbf24' },
     florist: { primary: '#f472b6', secondary: '#fbbf24' },
     bouquet: { primary: '#f472b6', secondary: '#fbbf24' },
+    // Fragrance
+    perfume: { primary: '#9333ea', secondary: '#c084fc' },
+    fragrance: { primary: '#9333ea', secondary: '#c084fc' },
     // Food & Beverage
     restaurant: { primary: '#f97316', secondary: '#fb923c' },
     cafe: { primary: '#f59e0b', secondary: '#fbbf24' },
     food: { primary: '#ef4444', secondary: '#f87171' },
-    bakery: { primary: '#f59e0b', secondary: '#fbbf24' },
-    // Fitness
+    bakery: { primary: '#d97706', secondary: '#f59e0b' },
+    catering: { primary: '#ea580c', secondary: '#f97316' },
+    // Fitness & Wellness
     gym: { primary: '#ef4444', secondary: '#f87171' },
     fitness: { primary: '#dc2626', secondary: '#ef4444' },
+    yoga: { primary: '#8b5cf6', secondary: '#a78bfa' },
     workout: { primary: '#b91c1c', secondary: '#dc2626' },
     // Beauty & Wellness
     salon: { primary: '#ec4899', secondary: '#f472b6' },
     beauty: { primary: '#d946ef', secondary: '#e879f9' },
     spa: { primary: '#a855f7', secondary: '#c084fc' },
+    barbershop: { primary: '#0f172a', secondary: '#1e293b' },
+    // Jewelry
+    jewelry: { primary: '#ca8a04', secondary: '#eab308' },
+    jewellery: { primary: '#ca8a04', secondary: '#eab308' },
+    // Photography
+    photography: { primary: '#1e293b', secondary: '#334155' },
+    // Medical & Dental
+    dental: { primary: '#06b6d4', secondary: '#22d3ee' },
+    healthcare: { primary: '#10b981', secondary: '#34d399' },
+    medical: { primary: '#059669', secondary: '#10b981' },
+    // Hospitality
+    hotel: { primary: '#b45309', secondary: '#d97706' },
+    // Legal & Finance
+    law: { primary: '#1e3a5f', secondary: '#1e40af' },
+    accounting: { primary: '#0f4c75', secondary: '#0369a1' },
+    // Services
+    cleaning: { primary: '#0284c7', secondary: '#0ea5e9' },
+    petcare: { primary: '#16a34a', secondary: '#22c55e' },
+    events: { primary: '#7c3aed', secondary: '#8b5cf6' },
+    tech: { primary: '#2563eb', secondary: '#3b82f6' },
+    startup: { primary: '#4f46e5', secondary: '#6366f1' },
     // Business Services
     agency: { primary: '#3b82f6', secondary: '#60a5fa' },
     consulting: { primary: '#6366f1', secondary: '#818cf8' },
@@ -366,14 +511,12 @@ function getBusinessTypeColors(businessType: string): { primary: string; seconda
     education: { primary: '#06b6d4', secondary: '#22d3ee' },
     school: { primary: '#0ea5e9', secondary: '#38bdf8' },
     course: { primary: '#0284c7', secondary: '#0ea5e9' },
+    // Real Estate
+    realestate: { primary: '#0891b2', secondary: '#06b6d4' },
     // Creative
     design: { primary: '#8b5cf6', secondary: '#a78bfa' },
     creative: { primary: '#7c3aed', secondary: '#8b5cf6' },
     studio: { primary: '#6d28d9', secondary: '#7c3aed' },
-    // Healthcare
-    healthcare: { primary: '#10b981', secondary: '#34d399' },
-    medical: { primary: '#059669', secondary: '#10b981' },
-    realestate: { primary: '#0891b2', secondary: '#06b6d4' },
     default: { primary: '#6366f1', secondary: '#818cf8' }
   };
 
