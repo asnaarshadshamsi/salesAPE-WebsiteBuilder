@@ -19,8 +19,12 @@ import {
   Briefcase,
   GraduationCap,
   Palette,
-  Building2
+  Building2,
+  Link as LinkIcon,
+  XCircle
 } from "lucide-react";
+import { getAIChatbotResponse } from "@/actions/ai-chat";
+import type { ChatbotState, ChatMessage } from "@/types/chatbot";
 
 // ==================== TYPES ====================
 
@@ -48,44 +52,6 @@ interface AIChatbotOnboardingProps {
   onComplete: (data: ExtractedBusinessData) => void;
   onCancel?: () => void;
 }
-
-// ==================== QUESTIONS ====================
-
-const CONVERSATION_FLOW = [
-  {
-    question: "Hello! I'm your AI website assistant. What's the name of your business?",
-    dataKey: "name",
-    placeholder: "e.g., Bella's Boutique, FitLife Gym, Tasty Bites Cafe"
-  },
-  {
-    question: "Thank you. What type of business is this? (e.g., restaurant, fitness gym, salon, ecommerce store, agency, etc.)",
-    dataKey: "businessType",
-    placeholder: "e.g., Online Fashion Store, Fitness Center, Italian Restaurant"
-  },
-  {
-    question: "Excellent. What products or services do you offer? Please list a few key ones.",
-    dataKey: "services",
-    placeholder: "e.g., Personal Training, Group Classes, Nutrition Plans"
-  },
-  {
-    question: "What makes your business unique? What's your competitive advantage or special offering?",
-    dataKey: "uniqueSellingPoint",
-    placeholder: "e.g., 24/7 access, Expert trainers, Customized plans"
-  },
-  {
-    question: "Who is your target audience? Who are your ideal customers?",
-    dataKey: "targetAudience",
-    placeholder: "e.g., Young professionals, Fitness enthusiasts, Families",
-    visual: "👥"
-  },
-  {
-    question: "Almost done! Do you have contact information you'd like to include? (phone, email, address)",
-    dataKey: "contactInfo",
-    placeholder: "e.g., contact@business.com, +1 234 567 8900, 123 Main St",
-    optional: true,
-    visual: "📞"
-  }
-];
 
 // Business type to icon mapping
 const BUSINESS_TYPE_ICONS: Record<string, React.ReactElement> = {
@@ -124,28 +90,26 @@ const getBusinessIcon = (businessType: string): React.ReactElement => {
 // ==================== COMPONENT ====================
 
 export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardingProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: "Hello! I'm your AI website assistant. I'll ask you a few questions about your business, and then I'll generate a professional website for you. Ready to get started?",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [conversationStarted, setConversationStarted] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [extractedData, setExtractedData] = useState<ExtractedBusinessData>({});
+  const [chatbotState, setChatbotState] = useState<ChatbotState | undefined>();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showConfirmationButtons, setShowConfirmationButtons] = useState(false);
+  const [extractingFromUrl, setExtractingFromUrl] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const initializedRef = useRef(false);
 
   // Speech recognition
   const [recognition, setRecognition] = useState<any>(null);
 
   useEffect(() => {
+    // Prevent duplicate initialization in React Strict Mode
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     // Initialize speech recognition
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -172,6 +136,17 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
         setRecognition(recognitionInstance);
       }
     }
+
+    // Start conversation automatically - only if no messages exist
+    if (messages.length === 0) {
+      const initialMessage: Message = {
+        id: "welcome",
+        role: "assistant",
+        content: "👋 Hi! I'll help you build your website.\n\nYou can either:\n1. Share your existing website URL (I'll extract the info)\n2. Tell me your business name (I'll guide you through)",
+        timestamp: new Date()
+      };
+      setMessages([initialMessage]);
+    }
   }, []);
 
   useEffect(() => {
@@ -188,30 +163,6 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
     }
   };
 
-  const startConversation = () => {
-    setConversationStarted(true);
-    askNextQuestion(0);
-  };
-
-  const askNextQuestion = (index: number) => {
-    if (index < CONVERSATION_FLOW.length) {
-      const question = CONVERSATION_FLOW[index];
-      const newMessage: Message = {
-        id: `q-${index}-${Date.now()}`,
-        role: "assistant",
-        content: question.question,
-        timestamp: new Date()
-      };
-      
-      setTimeout(() => {
-        setMessages(prev => [...prev, newMessage]);
-      }, 500);
-    } else {
-      // All questions answered, generate website
-      finalizeConversation();
-    }
-  };
-
   const handleSendMessage = async () => {
     if (!currentInput.trim() || isProcessing) return;
 
@@ -223,75 +174,164 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setCurrentInput("");
     setIsProcessing(true);
 
-    const currentQuestion = CONVERSATION_FLOW[currentQuestionIndex];
-    const userResponse = currentInput.trim();
+    try {
+      // Check if it's a URL
+      const urlPattern = /https?:\/\/|www\.|\.com|\.net|\.org|\.io/i;
+      const looksLikeUrl = urlPattern.test(currentInput);
+      
+      if (looksLikeUrl) {
+        setExtractingFromUrl(true);
+      }
 
-    // Extract and store data based on current question
-    const newData = { ...extractedData };
-    
-    switch (currentQuestion.dataKey) {
-      case "name":
-        newData.name = userResponse;
-        break;
-      case "businessType":
-        newData.businessType = userResponse;
-        break;
-      case "services":
-        newData.services = userResponse.split(',').map(s => s.trim());
-        newData.description = userResponse;
-        break;
-      case "uniqueSellingPoint":
-        newData.uniqueSellingPoint = userResponse;
-        break;
-      case "targetAudience":
-        newData.targetAudience = userResponse;
-        break;
-      case "contactInfo":
-        // Extract email, phone, address from response
-        const emailMatch = userResponse.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-        const phoneMatch = userResponse.match(/(\+?[\d\s()-]{10,})/);
-        if (emailMatch) newData.email = emailMatch[1];
-        if (phoneMatch) newData.phone = phoneMatch[1];
-        // Simple address detection - if it contains numbers and words
-        if (/\d+.*[A-Za-z]+/.test(userResponse)) {
-          newData.address = userResponse;
+      console.log('[Component] Sending message with state:', {
+        conversationState: chatbotState?.conversationState,
+        currentQuestion: chatbotState?.currentQuestion,
+        profileName: chatbotState?.profile?.name,
+        message: currentInput.substring(0, 50),
+      });
+
+      // Call orchestrator
+      const response = await getAIChatbotResponse(
+        currentInput,
+        chatbotState,
+        messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp }))
+      );
+
+      setExtractingFromUrl(false);
+
+      console.log('[Component] Received response:', {
+        success: response.success,
+        conversationState: response.state?.conversationState,
+        currentQuestion: response.state?.currentQuestion,
+        message: response.message?.substring(0, 50),
+      });
+
+      if (response.success && response.message) {
+        const assistantMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: response.message,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Update state
+        if (response.state) {
+          setChatbotState(response.state);
         }
-        break;
-    }
 
-    setExtractedData(newData);
-    setCurrentInput("");
+        // Handle confirmation flow
+        if (response.needsConfirmation) {
+          setShowConfirmationButtons(true);
+        } else {
+          setShowConfirmationButtons(false);
+        }
+
+        // Check if ready to generate
+        if (response.state?.conversationState === 'ready_to_generate_website') {
+          setTimeout(() => {
+            finalizeConversation(response.state);
+          }, 1000);
+        }
+      } else if (response.error) {
+        const errorMessage: Message = {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: `I encountered an issue: ${response.error}`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('[Chatbot] Error:', error);
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleConfirmationButton = async (confirmed: boolean) => {
+    const confirmationInput = confirmed ? "Yes" : "No";
     
-    // AI acknowledgment
-    const acknowledgments = [
-      "Got it! Thanks for sharing that.",
-      "Perfect! That helps a lot.",
-      "Awesome! I'm getting a clear picture now.",
-      "Excellent! That's really helpful.",
-      "Great! I'm building your website profile."
-    ];
-    
-    const ackMessage: Message = {
-      id: `ack-${Date.now()}`,
-      role: "assistant",
-      content: acknowledgments[Math.floor(Math.random() * acknowledgments.length)],
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: confirmationInput,
       timestamp: new Date()
     };
 
-    setTimeout(() => {
-      setMessages(prev => [...prev, ackMessage]);
+    setMessages(prev => [...prev, userMessage]);
+    setIsProcessing(true);
+    setShowConfirmationButtons(false);
+
+    console.log('[Component] Confirmation button clicked:', {
+      confirmed,
+      currentState: chatbotState?.conversationState,
+      pendingConfirmations: chatbotState?.pendingConfirmations,
+      currentQuestion: chatbotState?.currentQuestion,
+    });
+
+    try {
+      const response = await getAIChatbotResponse(
+        confirmationInput,
+        chatbotState,
+        messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp }))
+      );
+
+      console.log('[Component] Confirmation response received:', {
+        success: response.success,
+        conversationState: response.state?.conversationState,
+        pendingConfirmations: response.state?.pendingConfirmations,
+        currentQuestion: response.state?.currentQuestion,
+        needsConfirmation: response.needsConfirmation,
+      });
+
+      if (response.success && response.message) {
+        const assistantMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: response.message,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+
+        if (response.state) {
+          console.log('[Component] Updating chatbot state with:', {
+            conversationState: response.state.conversationState,
+            pendingConfirmations: response.state.pendingConfirmations,
+          });
+          setChatbotState(response.state);
+        }
+
+        if (response.needsConfirmation) {
+          setShowConfirmationButtons(true);
+        }
+
+        if (response.state?.conversationState === 'ready_to_generate_website') {
+          setTimeout(() => {
+            finalizeConversation(response.state);
+          }, 1000);
+        }
+      }
+    } catch (error) {
+      console.error('[Chatbot] Confirmation error:', error);
+    } finally {
       setIsProcessing(false);
-      
-      // Move to next question
-      const nextIndex = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIndex);
-      askNextQuestion(nextIndex);
-    }, 800);
+    }
   };
 
-  const finalizeConversation = () => {
+  const finalizeConversation = (state?: ChatbotState) => {
     setIsGenerating(true);
     
     const finalMessage: Message = {
@@ -303,7 +343,19 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
 
     setMessages(prev => [...prev, finalMessage]);
 
-    // Simulate AI processing and then call onComplete
+    // Convert ChatbotState to ExtractedBusinessData
+    const profile = state?.profile || chatbotState?.profile;
+    const extractedData: ExtractedBusinessData = {
+      name: profile?.name,
+      description: profile?.description,
+      businessType: profile?.businessType,
+      services: profile?.services,
+      features: profile?.features,
+      phone: profile?.phone,
+      email: profile?.email,
+      address: profile?.address,
+    };
+
     setTimeout(() => {
       onComplete(extractedData);
     }, 2000);
@@ -312,9 +364,25 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (!showConfirmationButtons) {
+        handleSendMessage();
+      }
     }
   };
+
+  // Calculate progress
+  const getProgress = () => {
+    const state = chatbotState?.conversationState;
+    if (!state || state === 'awaiting_url_or_name') return 0;
+    if (state === 'extracting_from_url') return 20;
+    if (state === 'confirming_extracted_profile') return 50;
+    if (state === 'interviewing_user') return 60;
+    if (state === 'enriching_with_url') return 80;
+    if (state === 'ready_to_generate_website') return 100;
+    return 0;
+  };
+
+  const progress = getProgress();
 
   return (
     <div className="relative min-h-[700px] bg-zinc-900 rounded-xl border border-zinc-700 overflow-hidden shadow-xl">
@@ -333,30 +401,20 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
           <div className="flex-1">
             <h3 className="font-semibold text-white text-base">AI Website Assistant</h3>
             <p className="text-xs text-gray-400">
-              AI-Powered • Voice Enabled
+              {extractingFromUrl ? "Extracting from URL..." : "AI-Powered • Voice Enabled"}
             </p>
           </div>
           
           {/* Progress indicator */}
-          {conversationStarted && (
+          {progress > 0 && (
             <div className="flex items-center gap-2 bg-zinc-800 px-3 py-1.5 rounded-md">
-              <div className="flex gap-1">
-                {Array.from({ length: CONVERSATION_FLOW.length }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      i < currentQuestionIndex
-                        ? 'bg-green-500'
-                        : i === currentQuestionIndex
-                        ? 'bg-blue-500'
-                        : 'bg-zinc-600'
-                    }`}
-                  />
-                ))}
+              <div className="w-24 bg-zinc-700 rounded-full h-2">
+                <div 
+                  className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-              <span className="text-xs text-gray-400">
-                {currentQuestionIndex}/{CONVERSATION_FLOW.length}
-              </span>
+              <span className="text-xs text-gray-400">{progress}%</span>
             </div>
           )}
           
@@ -388,7 +446,10 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
                     : "bg-zinc-800 text-gray-100 border border-zinc-700"
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <div 
+                  className="text-sm leading-relaxed whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: message.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
+                />
                 
                 <span className="text-xs opacity-60 mt-2 block">
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -403,7 +464,23 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
             </div>
           ))}
 
-          {isProcessing && (
+          {/* URL Extraction indicator */}
+          {extractingFromUrl && (
+            <div className="flex gap-3 animate-in slide-in-from-bottom-4">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 flex items-center gap-3">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                <div>
+                  <p className="text-sm text-white font-medium">Extracting information from your URL...</p>
+                  <p className="text-xs text-gray-400">This may take a moment</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isProcessing && !extractingFromUrl && (
             <div className="flex gap-3 animate-in slide-in-from-bottom-4">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Bot className="w-5 h-5 text-white" />
@@ -418,17 +495,17 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
             </div>
           )}
 
-          {/* Show business icon preview when business type is extracted */}
-          {extractedData.businessType && !isGenerating && (
+          {/* Show business preview when business info is available */}
+          {chatbotState?.profile?.name && chatbotState?.profile?.businessType && !isGenerating && (
             <div className="flex justify-center animate-in fade-in zoom-in duration-500">
               <div className="bg-zinc-800 border border-zinc-700 rounded-lg px-6 py-4 flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                  {getBusinessIcon(extractedData.businessType)}
+                  {getBusinessIcon(chatbotState.profile.businessType)}
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Building website for</p>
-                  <p className="font-semibold text-white">{extractedData.name || 'Your Business'}</p>
-                  <p className="text-xs text-blue-400">{extractedData.businessType}</p>
+                  <p className="font-semibold text-white">{chatbotState.profile.name}</p>
+                  <p className="text-xs text-blue-400">{chatbotState.profile.businessType}</p>
                 </div>
               </div>
             </div>
@@ -437,85 +514,107 @@ export function AIChatbotOnboarding({ onComplete, onCancel }: AIChatbotOnboardin
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* Input Area with Confirmation Buttons */}
         {!isGenerating && (
           <div className="p-4 border-t border-zinc-800 bg-zinc-900">
-            {!conversationStarted ? (
+            {showConfirmationButtons ? (
               <div className="space-y-3">
-                <Button
-                  onClick={startConversation}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                  size="lg"
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Start Conversation
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    onClick={() => handleConfirmationButton(true)}
+                    disabled={isProcessing}
+                    className="bg-green-600 hover:bg-green-700 text-white px-8"
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Yes
+                  </Button>
+                  <Button
+                    onClick={() => handleConfirmationButton(false)}
+                    disabled={isProcessing}
+                    variant="outline"
+                    className="hover:bg-red-600 hover:text-white hover:border-red-600 px-8"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    No
+                  </Button>
+                </div>
                 <p className="text-center text-xs text-gray-500">
-                  Answer questions via typing or voice to build your website
+                  Or type a correction below
                 </p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={toggleVoiceInput}
-                    className={`shrink-0 transition-all ${
-                      isListening 
-                        ? "bg-red-600 hover:bg-red-700 border-red-600 text-white" 
-                        : "hover:bg-zinc-800 hover:border-blue-500"
-                    }`}
-                    disabled={isProcessing}
-                  >
-                    {isListening ? (
-                      <MicOff className="w-5 h-5" />
-                    ) : (
-                      <Mic className="w-5 h-5" />
-                    )}
-                  </Button>
-                  
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={currentInput}
-                    onChange={(e) => setCurrentInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={
-                      isListening 
-                        ? "Listening..." 
-                        : CONVERSATION_FLOW[currentQuestionIndex]?.placeholder || "Type your answer or use voice..."
-                    }
-                    disabled={isProcessing || isListening}
-                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                  />
-                  
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!currentInput.trim() || isProcessing}
-                    className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    size="icon"
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                  </Button>
-                </div>
+            ) : null}
 
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-400 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    {Object.keys(extractedData).length} details collected
-                  </span>
-                  <span className="text-gray-500">
-                    Press Enter to send
-                  </span>
-                </div>
+            <div className={`space-y-3 ${showConfirmationButtons ? 'mt-3' : ''}`}>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleVoiceInput}
+                  className={`shrink-0 transition-all ${
+                    isListening 
+                      ? "bg-red-600 hover:bg-red-700 border-red-600 text-white" 
+                      : "hover:bg-zinc-800 hover:border-blue-500"
+                  }`}
+                  disabled={isProcessing || extractingFromUrl}
+                >
+                  {isListening ? (
+                    <MicOff className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </Button>
+                
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={currentInput}
+                  onChange={(e) => setCurrentInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={
+                    isListening 
+                      ? "Listening..." 
+                      : extractingFromUrl
+                      ? "Extracting..."
+                      : "Type your answer, business name, or URL..."
+                  }
+                  disabled={isProcessing || isListening || extractingFromUrl}
+                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                />
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!currentInput.trim() || isProcessing || extractingFromUrl}
+                  className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  size="icon"
+                >
+                  {isProcessing ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </Button>
               </div>
-            )}
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400 flex items-center gap-1.5">
+                  {chatbotState?.urlDetected && (
+                    <>
+                      <LinkIcon className="w-3.5 h-3.5 text-blue-500" />
+                      URL detected
+                    </>
+                  )}
+                  {chatbotState?.profile?.name && !chatbotState?.urlDetected && (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                      Profile in progress
+                    </>
+                  )}
+                </span>
+                <span className="text-gray-500">
+                  Press Enter to send
+                </span>
+              </div>
+            </div>
           </div>
         )}
 

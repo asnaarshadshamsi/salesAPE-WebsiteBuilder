@@ -1,5 +1,8 @@
 "use server";
 
+import { chatbotOrchestrator } from '@/services/chatbot/chatbot-orchestrator.service';
+import type { ChatbotState, ChatbotResponse, ChatMessage as ChatbotMessage } from '@/types/chatbot';
+
 const COHERE_API_KEY = process.env.COHERE_API_KEY || process.env.cohere_api_key || '';
 
 interface ChatMessage {
@@ -205,4 +208,72 @@ Return ONLY the JSON object, no other text.`;
       error: error instanceof Error ? error.message : "Failed to extract data",
     };
   }
+}
+
+/**
+ * New intelligent chatbot with URL extraction and cross-questioning
+ */
+export async function getAIChatbotResponse(
+  userMessage: string,
+  currentState?: ChatbotState,
+  messageHistory?: ChatbotMessage[]
+): Promise<ChatbotResponse> {
+  try {
+    console.log('[AI Chat Action] Processing message with orchestrator:', {
+      userMessage: userMessage.substring(0, 50),
+      hasState: !!currentState,
+      conversationState: currentState?.conversationState,
+      pendingConfirmations: currentState?.pendingConfirmations,
+      currentQuestion: currentState?.currentQuestion,
+    });
+    
+    const response = await chatbotOrchestrator.processMessage(
+      userMessage,
+      currentState,
+      messageHistory
+    );
+
+    console.log('[AI Chat Action] Response from orchestrator:', {
+      success: response.success,
+      conversationState: response.state?.conversationState,
+      pendingConfirmations: response.state?.pendingConfirmations,
+      currentQuestion: response.state?.currentQuestion,
+      messagePreview: response.message?.substring(0, 50),
+    });
+
+    return response;
+  } catch (error) {
+    console.error('[AI Chat Action] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to process message',
+      state: currentState,
+    };
+  }
+}
+
+/**
+ * Helper to get chatbot state from extracted profile
+ */
+export async function getChatbotStateFromProfile(profile: any): Promise<ChatbotState> {
+  return {
+    conversationState: 'ready_to_generate_website',
+    profile: {
+      name: profile.name,
+      description: profile.description,
+      businessType: profile.businessType,
+      phone: profile.phone,
+      email: profile.email,
+      address: profile.address,
+      services: profile.services,
+      products: profile.products,
+      features: profile.features,
+      confidence: {
+        overall: 'high',
+        name: 'high',
+        businessType: 'high',
+        description: 'high',
+      },
+    },
+  };
 }

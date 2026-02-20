@@ -2090,18 +2090,43 @@ function classifyWebsite({
     };
   }
   
-  // 1B: Platform detection
+  // 1B: Platform detection (with smart restaurant override)
   const platform = detectPlatform(H);
   if (platform.type && platform.confidence >= 85) {
-    reasons.push(`Platform detected: ${platform.platform} → ${platform.type}`);
-    console.log(`[Layer 1B - Platform] ${platform.platform} → ${platform.type} (confidence: ${platform.confidence}%)`);
-    return {
-      type: platform.type,
-      confidence: 'high',
-      score: platform.confidence,
-      reasons,
-      layer: 'platform',
-    };
+    // SPECIAL CASE: Restaurant using ecommerce platforms (food delivery)
+    if (platform.type === 'ecommerce') {
+      // Check for strong restaurant indicators
+      const hasRestaurantKeywords = /\b(menu|food|restaurant|cafe|dining|delivery|takeout|chef|cuisine|dishes?|meals?|eat|dine)\b/i.test(T);
+      const hasMenuPage = navigationLinks.some(link => /menu|food/i.test(link));
+      const hasRestaurantSchema = /"@type"\s*:\s*"(Restaurant|FoodEstablishment)"/i.test(J);
+      
+      if ((hasRestaurantKeywords && hasMenuPage) || hasRestaurantSchema) {
+        reasons.push(`Platform detected: ${platform.platform} (but overridden by restaurant signals)`);
+        console.log(`[Layer 1B - Platform Override] ${platform.platform} detected but has restaurant signals, classifying as restaurant`);
+        // Continue to full classification instead of returning immediately
+      } else {
+        reasons.push(`Platform detected: ${platform.platform} → ${platform.type}`);
+        console.log(`[Layer 1B - Platform] ${platform.platform} → ${platform.type} (confidence: ${platform.confidence}%)`);
+        return {
+          type: platform.type,
+          confidence: 'high',
+          score: platform.confidence,
+          reasons,
+          layer: 'platform',
+        };
+      }
+    } else {
+      // Non-ecommerce platforms still get immediate return
+      reasons.push(`Platform detected: ${platform.platform} → ${platform.type}`);
+      console.log(`[Layer 1B - Platform] ${platform.platform} → ${platform.type} (confidence: ${platform.confidence}%)`);
+      return {
+        type: platform.type,
+        confidence: 'high',
+        score: platform.confidence,
+        reasons,
+        layer: 'platform',
+      };
+    }
   }
   
   // 1C: Navigation analysis
@@ -2164,6 +2189,20 @@ function classifyWebsite({
     scores['ecommerce'] += productCount * 2;
     if (productCount >= 3) {
       reasons.push(`Product count boost: ${productCount} products`);
+    }
+  }
+  
+  // Restaurant boost when using ecommerce platforms for food delivery
+  if (platform.type === 'ecommerce' && platform.confidence >= 85) {
+    const hasRestaurantKeywords = /\b(menu|food|restaurant|cafe|dining|delivery|takeout|chef|cuisine|dishes?|meals?|eat|dine|burger|pizza|chicken|fish|steak|dessert|breakfast|lunch|dinner)\b/i.test(T);
+    const hasMenuPage = navigationLinks.some(link => /menu|food/i.test(link));
+    const hasRestaurantNav = /\b(menu|food|order[-\s]online|delivery|takeout)\b/i.test(navigationLinks.join(' '));
+    
+    if (hasRestaurantKeywords || hasMenuPage || hasRestaurantNav) {
+      const boost = 40; // Strong boost to overcome platform detection
+      scores['restaurant'] = (scores['restaurant'] || 0) + boost;
+      reasons.push(`Restaurant boost: Using ${platform.platform} for food ordering (boost: ${boost})`);
+      console.log(`[Restaurant Boost] ${platform.platform} detected with restaurant signals, boosting restaurant score by ${boost}`);
     }
   }
   
