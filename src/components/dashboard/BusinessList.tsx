@@ -16,6 +16,7 @@ import {
   MoreVertical,
   RefreshCw,
   Loader2,
+  Paintbrush,
 } from "lucide-react";
 
 interface BusinessCardProps {
@@ -121,6 +122,16 @@ export function BusinessCard({ business, appUrl }: BusinessCardProps) {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Business
                 </Link>
+                {business.site && (
+                  <Link
+                    href={`/editor/${business.site.slug}`}
+                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-zinc-700 transition-colors"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <Paintbrush className="w-4 h-4 mr-2" />
+                    Edit Site Design
+                  </Link>
+                )}
                 <Link
                   href={`/create?edit=${business.id}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-zinc-700 transition-colors"
@@ -169,12 +180,21 @@ export function BusinessCard({ business, appUrl }: BusinessCardProps) {
             View Live Site
           </Link>
         )}
+        {business.site && (
+          <Link
+            href={`/editor/${business.site.slug}`}
+            className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+          >
+            <Paintbrush className="w-4 h-4 mr-2" />
+            Edit Site
+          </Link>
+        )}
         <Link
           href={`/dashboard/business/${business.id}`}
           className="inline-flex items-center justify-center px-4 py-2 bg-zinc-800 text-gray-300 rounded-lg hover:bg-zinc-700 transition-colors text-sm font-medium"
         >
           <Edit className="w-4 h-4 mr-2" />
-          Edit
+          Edit Business
         </Link>
       </div>
     </div>

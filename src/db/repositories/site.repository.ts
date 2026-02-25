@@ -40,6 +40,45 @@ export class SiteRepository {
   }
 
   /**
+   * Find site by ID with business data
+   */
+  async findByIdWithBusiness(siteId: string) {
+    if (!siteId) {
+      throw new Error('Site ID is required');
+    }
+
+    return await prisma.site.findUnique({
+      where: { id: siteId },
+      include: {
+        business: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Find site by slug with business data
+   */
+  async findBySlugWithBusiness(slug: string) {
+    return await prisma.site.findUnique({
+      where: { slug },
+      include: {
+        business: {
+          include: {
+            user: true,
+            products: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Create a new site
    */
   async create(data: any): Promise<Site> {
