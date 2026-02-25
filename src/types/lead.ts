@@ -28,4 +28,5 @@ export interface CreateLeadInput {
   phone?: string;
   message?: string;
   variant?: string;
+  source?: string;
 }

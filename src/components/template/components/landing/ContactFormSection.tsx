@@ -10,6 +10,7 @@ interface ContactFormSectionProps {
   address?: string;
   businessName: string;
   businessType?: string;
+  siteId?: string;
 }
 
 // Context-aware contact form intro text
@@ -69,6 +70,7 @@ const ContactFormSection = ({
   address,
   businessName,
   businessType,
+  siteId,
 }: ContactFormSectionProps) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -81,21 +83,38 @@ const ContactFormSection = ({
 
   const { title, description } = getContactIntro(businessType, businessName);
 
+  const [submitError, setSubmitError] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!siteId) return;
     setIsSubmitting(true);
+    setSubmitError(false);
 
-    // Simulate form submission (integrate with your backend/email service)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setSubmitSuccess(true);
-    setIsSubmitting(false);
-
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({ name: "", email: "", phone: "", message: "" });
-      setSubmitSuccess(false);
-    }, 3000);
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          message: formData.message || undefined,
+          source: 'contact_form',
+        }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setFormData({ name: '', email: '', phone: '', message: '' });
+        setSubmitSuccess(false);
+      }, 4000);
+    } catch {
+      setSubmitError(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
@@ -286,10 +305,17 @@ const ContactFormSection = ({
                     </p>
                   </div>
                 )}
+                {submitError && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-600">
+                    <p className="text-sm font-medium">
+                      Something went wrong. Please try again or contact us directly.
+                    </p>
+                  </div>
+                )}
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !siteId}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 font-semibold py-4 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:hover:scale-100"
                 >
                   {isSubmitting ? (

@@ -225,13 +225,8 @@ export function ProfessionalSiteTemplate({ site, business, products }: Professio
     e.preventDefault();
     setFormStatus('submitting');
     try {
-      // If Calendly is configured, redirect there
-      if (business.calendlyUrl) {
-        window.open(business.calendlyUrl, '_blank');
-        setFormStatus('success');
-        return;
-      }
-      // Otherwise send to lead capture endpoint
+      // Always save the lead first — this triggers owner notification email
+      // AND auto-response email to the user (which includes the Calendly booking link if set)
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -244,12 +239,16 @@ export function ProfessionalSiteTemplate({ site, business, products }: Professio
           preferredDate: formData.date,
           preferredTime: formData.time,
           message: formData.message,
-          source: 'booking_form',
+          source: business.calendlyUrl ? 'calendly_form' : 'booking_form',
         }),
       });
       if (res.ok) {
         setFormStatus('success');
         setFormData({ name: '', email: '', phone: '', service: business.services[0] || '', date: '', time: '', message: '' });
+        // If Calendly is configured, open it so user can pick a slot right away
+        if (business.calendlyUrl) {
+          window.open(business.calendlyUrl, '_blank');
+        }
       } else {
         setFormStatus('error');
       }
@@ -742,28 +741,38 @@ export function ProfessionalSiteTemplate({ site, business, products }: Professio
                       style={{ background: `linear-gradient(135deg, #22c55e, #16a34a)` }}>
                       <Check size={36} className="text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                      {business.calendlyUrl ? 'Redirected to Booking' : "We'll be in touch!"}
-                    </h3>
-                    <p className="text-gray-500 mb-8">
-                      {business.calendlyUrl
-                        ? 'A new tab has opened with our live booking calendar.'
-                        : 'Thank you for reaching out. Our team will contact you within 24 hours.'}
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Message received!</h3>
+                    <p className="text-gray-500 mb-6">
+                      Thanks for reaching out. We&apos;ve sent you a confirmation email and our team will be in touch within 24 hours.
                     </p>
+                    {business.calendlyUrl && (
+                      <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                        <p className="text-sm text-blue-700 font-medium mb-3">📅 Want to book a time right now?</p>
+                        <a
+                          href={business.calendlyUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block px-6 py-3 rounded-full font-semibold text-white transition-all duration-300 hover:scale-105 text-sm"
+                          style={{ background: grad }}
+                        >
+                          Open Booking Calendar
+                        </a>
+                        <p className="text-xs text-blue-500 mt-2">A booking confirmation will be sent to your email automatically.</p>
+                      </div>
+                    )}
                     <button onClick={() => setFormStatus('idle')}
-                      className="px-8 py-3 rounded-full font-semibold text-white transition-all duration-300 hover:scale-105"
-                      style={{ background: grad }}>
+                      className="px-8 py-3 rounded-full font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-all duration-300 text-sm">
                       Send Another Message
                     </button>
                   </div>
                 ) : (
                   <>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {business.calendlyUrl ? 'Schedule Your Appointment' : 'Send Us a Message'}
+                      {business.calendlyUrl ? 'Book an Appointment' : 'Send Us a Message'}
                     </h3>
                     <p className="text-gray-400 text-sm mb-8">
                       {business.calendlyUrl
-                        ? 'Fill in your details and we\'ll open our live booking calendar for you.'
+                        ? 'Enter your details below. We\'ll save your enquiry and send you a booking link by email.'
                         : 'Fields marked * are required.'}
                     </p>
 

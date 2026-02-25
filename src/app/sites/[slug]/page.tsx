@@ -161,7 +161,7 @@ export default async function SitePage({ params }: SitePageProps) {
           ) : templateKind === 'food' ? (
             <FoodTemplate data={landing} siteId={site.id} />
           ) : (
-            <LandingTemplate data={landing} />
+            <LandingTemplate data={landing} siteId={site.id} />
           )}
         </>
       );

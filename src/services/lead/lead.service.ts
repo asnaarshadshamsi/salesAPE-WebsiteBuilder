@@ -115,7 +115,8 @@ export class LeadService {
         name: siteWithBusiness.business.name,
         email: siteWithBusiness.business.email,
         phone: siteWithBusiness.business.phone,
-        ownerEmail: siteWithBusiness.business.email || '',
+        // Prefer the owner's login email; fall back to the public business email
+        ownerEmail: (siteWithBusiness.business as any).user?.email || siteWithBusiness.business.email || '',
         siteUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/sites/${siteWithBusiness.slug}`,
         calendlyUrl: siteWithBusiness.business.calendlyUrl,
       };

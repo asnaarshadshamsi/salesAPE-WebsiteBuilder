@@ -20,6 +20,7 @@ export class SiteRepository {
       include: {
         business: {
           include: {
+            user: true,
             products: {
               orderBy: { sortOrder: 'asc' },
             },

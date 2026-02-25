@@ -105,7 +105,8 @@ export class TemplateFieldGeneratorService {
 
   private async tryChatAPI(prompt: string): Promise<BusinessData | null> {
     try {
-      const resp = await fetch(`${COHERE_API_URL}/chat`, {
+      // command-r-plus is only available on the Cohere v2 Chat API
+      const resp = await fetch('https://api.cohere.ai/v2/chat', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${COHERE_API_KEY}`,
@@ -113,7 +114,7 @@ export class TemplateFieldGeneratorService {
         },
         body: JSON.stringify({
           model: 'command-r-plus',
-          message: prompt,
+          messages: [{ role: 'user', content: prompt }],
           temperature: 0.55,
           max_tokens: 4000,
         }),
@@ -123,7 +124,8 @@ export class TemplateFieldGeneratorService {
         return null;
       }
       const data = await resp.json();
-      const text = data.text || data.generations?.[0]?.text;
+      // v2 response: data.message.content[0].text
+      const text = data.message?.content?.[0]?.text || data.text || data.generations?.[0]?.text;
       if (!text) return null;
       return this.parseBusinessDataJSON(text);
     } catch (e) {
@@ -165,27 +167,108 @@ export class TemplateFieldGeneratorService {
 
   private buildLLMPrompt(merged: MergedData): string {
     const year = new Date().getFullYear();
-    
-    // Specific instructions based on business type
+    const btype = (merged.businessType || '').toLowerCase();
+    const desc  = (merged.description || merged.aboutContent || '').toLowerCase();
+    const rawText = (merged.rawText || '').toLowerCase();
+    const topProducts = (merged.products || []).slice(0, 5).map((p: any) => p.name).filter(Boolean).join(', ');
+    const topServices = merged.services.slice(0, 5).join(', ');
+
+    // ── Business category detection ──────────────────────────────────
     const foodTypes = ['restaurant', 'cafe', 'bakery', 'catering', 'food', 'pizzeria', 'bistro', 'diner', 'eatery', 'bar', 'pub', 'grill', 'steakhouse', 'sushi', 'fastfood', 'takeaway', 'foodtruck'];
-    const isFoodBusiness = foodTypes.some(t => merged.businessType?.toLowerCase().includes(t)) ||
-      (merged.rawText || '').toLowerCase().includes('menu') ||
+    const fashionTypes = ['fashion', 'clothing', 'apparel', 'boutique', 'textile', 'wear', 'garment', 'couture', 'pret', 'lawn', 'linen', 'kurta', 'shalwar', 'formal wear', 'bridal wear'];
+
+    const isFoodBusiness = foodTypes.some(t => btype.includes(t)) ||
+      rawText.includes('menu') ||
       ['dine-in', 'dine in', 'takeout', 'delivery', 'catering'].some(w => merged.services.map(s => s.toLowerCase()).some(s => s.includes(w)));
 
+    const isFashionBrand = fashionTypes.some(t => btype.includes(t)) ||
+      fashionTypes.some(t => desc.includes(t)) ||
+      (btype === 'ecommerce' && fashionTypes.some(t => (desc + rawText).includes(t)));
+
+    const isPerfumeBrand = ['perfumery', 'parfumerie', 'fragrance house', 'perfume brand'].some(t => desc.includes(t)) ||
+      ['parfum', 'eau de parfum', 'eau de toilette', 'oud', 'attar'].filter(t => rawText.includes(t)).length >= 2;
+
+    const isJewelryBrand = ['jewelry', 'jewellery', 'diamond', 'gemstone'].some(t => btype.includes(t)) ||
+      ['jewelry', 'jewellery', 'diamond', 'gemstone', 'necklace', 'bracelet'].filter(t => desc.includes(t)).length >= 2;
+
+    const isFlowerShop = ['florist', 'flower shop', 'floral boutique'].some(t => btype.includes(t) || desc.includes(t)) ||
+      ['bouquet', 'florist', 'flower arrangement'].every(t => rawText.includes(t));
+
+    const isGym = ['gym', 'fitness', 'crossfit'].some(t => btype.includes(t));
+    const isSpa = ['spa', 'massage', 'wellness'].some(t => btype.includes(t));
+    const isSalon = ['salon', 'beauty', 'nail', 'lash', 'barbershop', 'barber'].some(t => btype.includes(t));
+
+    // ── Lead form copy derived from the actual brand and its products ─
+    let leadFormInstruction: string;
+    if (isFashionBrand) {
+      leadFormInstruction = `CRITICAL — leadForm for FASHION/CLOTHING brand "${merged.name}":
+- eyebrow: MUST be about clothing orders (e.g. "Order Enquiry", "Style Consultation", "Custom Order", "Outfit Enquiry")
+- heading: MUST be about fashion (e.g. "Request Your Style", "Enquire About Our Collection", "Find Your Perfect Look")
+- subheading: Reference the brand's actual products (${topProducts || 'clothing, dresses, formal wear'}) and invite the visitor to enquire
+- messagePlaceholder: Ask about size, colour, occasion, preferred style, or specific item
+- submitLabel: "Send Enquiry", "Request a Style", "Get a Quote"
+- DO NOT use "Fragrance Consultation", "Floral Order", "Book a Session" or any non-fashion copy
+- The word "floral" appearing in products (e.g. "floral prints") is a FABRIC PATTERN, not a flower shop`;
+    } else if (isPerfumeBrand) {
+      leadFormInstruction = `leadForm for PERFUME/FRAGRANCE brand "${merged.name}":
+- eyebrow: "Fragrance Consultation" or "Find Your Scent"
+- heading: Personal fragrance discovery heading
+- subheading: Reference the brand's scent families or collections (${topProducts || 'fragrances'})
+- messagePlaceholder: Ask about preferred notes, mood, occasion
+- submitLabel: "Find My Scent" or "Book Consultation"`;
+    } else if (isJewelryBrand) {
+      leadFormInstruction = `leadForm for JEWELRY brand "${merged.name}":
+- eyebrow: "Custom Order" or "Bespoke Enquiry"
+- heading: About requesting a bespoke or custom piece
+- messagePlaceholder: Ask about metal, stones, ring size, occasion`;
+    } else if (isFlowerShop) {
+      leadFormInstruction = `leadForm for FLOWER SHOP "${merged.name}":
+- eyebrow: "Floral Order" or "Custom Arrangement"
+- heading: About ordering custom floral arrangements
+- messagePlaceholder: Ask about occasion, preferred flowers, colours, delivery date`;
+    } else if (isFoodBusiness) {
+      leadFormInstruction = `leadForm for RESTAURANT/FOOD business "${merged.name}":
+- eyebrow: "Table Reservation" or "Enquiry"
+- heading: About reserving a table or placing a catering enquiry
+- messagePlaceholder: Ask about party size, date/time, occasion, dietary needs`;
+    } else if (isGym) {
+      leadFormInstruction = `leadForm for FITNESS/GYM "${merged.name}":
+- eyebrow: "Membership Enquiry"
+- heading: About starting a membership or booking a free trial
+- messagePlaceholder: Ask about fitness goals, preferred schedule`;
+    } else if (isSpa) {
+      leadFormInstruction = `leadForm for SPA/WELLNESS "${merged.name}":
+- eyebrow: "Wellness Booking"
+- heading: About booking a treatment or wellness session
+- messagePlaceholder: Ask about preferred treatment, date, any requirements`;
+    } else if (isSalon) {
+      leadFormInstruction = `leadForm for BEAUTY/SALON "${merged.name}":
+- eyebrow: "Book a Service"
+- heading: About booking a beauty or grooming appointment
+- messagePlaceholder: Ask about desired service, preferred time`;
+    } else {
+      leadFormInstruction = `leadForm for "${merged.name}" (${merged.businessType} business):
+- eyebrow: Short label matching what this business offers (based on: ${topServices || topProducts || btype})
+- heading: Specific to what this business actually sells or offers — NOT generic
+- subheading: Reference 1-2 actual services or products: ${topServices || topProducts || 'the business offerings'}
+- messagePlaceholder: Ask the visitor about their specific needs relative to this business
+- submitLabel: Action-oriented, e.g. "Get a Quote", "Send Enquiry", "Book Now"`;
+    }
+
+    // ── Section-level instructions ───────────────────────────────────
     let businessSpecificInstructions = '';
-    if (merged.businessType === 'fitness') {
-      businessSpecificInstructions = 'IMPORTANT FOR FITNESS/GYM: Focus on transformation and membership programs. Memberships are SERVICES not products. Use fitness-oriented CTAs.\\n';
-    } else if (merged.businessType === 'ecommerce') {
-      businessSpecificInstructions = 'IMPORTANT FOR ECOMMERCE: Include products section with items, prices, categories. Use shopping CTAs.\\n';
+    if (isGym) {
+      businessSpecificInstructions = 'IMPORTANT FOR FITNESS/GYM: Focus on transformation and membership programs. Memberships are SERVICES not products. Use fitness-oriented CTAs.\n';
+    } else if (btype === 'ecommerce' && !isFashionBrand) {
+      businessSpecificInstructions = 'IMPORTANT FOR ECOMMERCE: Include products section with items, prices, categories. Use shopping CTAs.\n';
     } else if (isFoodBusiness) {
       businessSpecificInstructions = `IMPORTANT FOR FOOD/RESTAURANT BUSINESS:
 - The "services" section represents the MENU or dining OPTIONS (e.g. Dine-In, Takeout, Delivery, Catering, Breakfast, Lunch, Dinner, Chef Specials, Seasonal Menu).
-- Each service item MUST have a mouth-watering, food-specific description that highlights the experience, ingredients, atmosphere, or convenience. NEVER use generic phrases like "Professional X solutions tailored to your needs".
-- Use sensory and emotional language (e.g. "Savour the warmth of freshly baked bread", "Experience the sizzle of our signature grill", "Enjoy restaurant-quality meals in the comfort of your home").
-- services.title should be something like "Our Menu", "What We Offer", "The Experience", or "How We Serve You".
-- services.subtitle should be a 1-sentence food-themed teaser.
-- The about.description MUST be rewritten from scratch as a warm, inviting story about the restaurant — its founding, cuisine philosophy, and what makes it special. Do NOT copy scraped text verbatim.
-- nav.links should use food-relevant labels: Menu, About, Gallery, Reservations, Contact (not generic "Services").
+- Each service item MUST have a mouth-watering, food-specific description. NEVER use generic phrases.
+- Use sensory and emotional language.
+- services.title should be something like "Our Menu", "What We Offer", or "How We Serve You".
+- The about.description MUST be rewritten from scratch as a warm, inviting brand story.
+- nav.links should use food-relevant labels: Menu, About, Gallery, Reservations, Contact.
 `;
     }
 
@@ -199,12 +282,15 @@ RULES:
 5. If services are missing, infer 4-6 services from the scraped content — make each description 2-3 compelling, specific sentences.
 6. If features are missing, generate 4 relevant, specific features with concrete benefits.
 7. Service descriptions MUST be specific to the business type — never generic phrases like "Professional X solutions tailored to your needs" or "We take pride in delivering personalized solutions".
-7. Generate realistic stats (e.g. "500+", "98%", "24/7", "10+").
-8. Use action-oriented CTAs matching the business type.
-9. DO NOT include image URLs in the JSON — images are handled separately.
-10. For ${merged.businessType === 'ecommerce' ? 'ECOMMERCE' : 'non-ecommerce'} businesses, ${merged.businessType === 'ecommerce' ? 'INCLUDE a products section with realistic items, prices, and categories' : 'OMIT the products section unless specific products were scraped'}.
+8. Generate realistic stats (e.g. "500+", "98%", "24/7", "10+").
+9. Use action-oriented CTAs matching the business type.
+10. DO NOT include image URLs in the JSON — images are handled separately.
+11. For ${merged.businessType === 'ecommerce' ? 'ECOMMERCE' : 'non-ecommerce'} businesses, ${merged.businessType === 'ecommerce' ? 'INCLUDE a products section with realistic items, prices, and categories' : 'OMIT the products section unless specific products were scraped'}.
 
 ${businessSpecificInstructions}
+LEAD FORM INSTRUCTION (FOLLOW EXACTLY — this overrides all examples):
+${leadFormInstruction}
+
 BUSINESS INFO:
 - Name: ${merged.name}
 - Type: ${merged.businessType}
@@ -310,13 +396,13 @@ Return a JSON object that matches this EXACT schema (no extra keys, no markdown,
     "copyright": "© ${year} ${merged.name}. All rights reserved."
   },
   "leadForm": {
-    "eyebrow": "Short section label matching the business (e.g. 'Order Enquiry', 'Fragrance Consultation', 'Book a Session', 'Reserve Your Table', 'Membership Enquiry')",
-    "heading": "Compelling heading for the lead capture form (e.g. 'Find Your Signature Scent', 'Request a Custom Piece', 'Book Your Membership', 'Reserve Your Table') — MUST match the exact nature of this business, NOT a generic phrase",
-    "subheading": "1-2 sentences inviting the visitor to fill in the form, referencing what this business specifically offers (e.g. for a perfume brand: 'Describe the mood or occasions you wear fragrance for and our experts will recommend the perfect scent.'; for a gym: 'Tell us your fitness goals and we'll match you to the ideal membership plan.')",
-    "messagePlaceholder": "Context-specific textarea placeholder that tells the visitor exactly what to write (e.g. for perfume: 'Describe your favourite scent notes — woody, floral, oud? Any occasion in mind?'; for clothing: 'Your size, preferred colour, occasion or any custom requirements…')",
-    "submitLabel": "Action-oriented button label (e.g. 'Find My Scent', 'Send Enquiry', 'Book Free Session', 'Reserve Table', 'Request a Quote')",
-    "successTitle": "Short confirmation heading after submission (e.g. 'Your Enquiry is Sent!', 'Consultation Booked!')",
-    "successMessage": "1-2 sentence follow-up message telling the user what happens next."
+    "eyebrow": "FOLLOW THE INSTRUCTION BELOW — do NOT use a generic placeholder",
+    "heading": "FOLLOW THE INSTRUCTION BELOW",
+    "subheading": "FOLLOW THE INSTRUCTION BELOW",
+    "messagePlaceholder": "FOLLOW THE INSTRUCTION BELOW",
+    "submitLabel": "FOLLOW THE INSTRUCTION BELOW",
+    "successTitle": "Short confirmation heading (e.g. 'Enquiry Sent!', 'Booking Received!')",
+    "successMessage": "1-2 sentences telling the user what happens next after they submit."
   }
 }
 

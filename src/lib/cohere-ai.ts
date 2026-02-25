@@ -105,16 +105,21 @@ async function cohereChat(
   }
 
   try {
-    const response = await fetch(`${COHERE_API_URL}/chat`, {
+    const response = await fetch('https://api.cohere.ai/v2/chat', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${COHERE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'command',
-        message,
-        preamble: preamble || 'You are an expert marketing copywriter who creates compelling, conversion-focused content for businesses.',
+        model: 'command-r',
+        messages: [
+          {
+            role: 'system',
+            content: preamble || 'You are an expert marketing copywriter who creates compelling, conversion-focused content for businesses.',
+          },
+          { role: 'user', content: message },
+        ],
         temperature: 0.7,
       }),
     });
@@ -126,7 +131,8 @@ async function cohereChat(
     }
 
     const data = await response.json();
-    return data.text?.trim() || null;
+    // v2 response: data.message.content[0].text
+    return data.message?.content?.[0]?.text?.trim() || data.text?.trim() || null;
   } catch (error) {
     console.error('Cohere chat request failed:', error);
     return null;
