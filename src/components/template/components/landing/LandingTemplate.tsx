@@ -59,6 +59,7 @@ const LandingTemplate = ({ data }: LandingTemplateProps) => {
           <FooterSection 
             data={data.footer} 
             brandName={data.brand.name} 
+            brandLogo={data.brand.logo}
             contact={data.contact}
           />
         )}

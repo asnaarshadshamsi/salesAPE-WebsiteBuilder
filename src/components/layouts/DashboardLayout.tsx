@@ -11,14 +11,9 @@ interface DashboardLayoutProps {
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   const user = await getCurrentUser();
 
-  // Don't redirect here - let the middleware handle it
-  // This prevents double redirects
+  // Redirect to login if no user
   if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div>Redirecting...</div>
-      </div>
-    );
+    redirect('/login');
   }
 
   return (

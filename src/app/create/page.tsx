@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createBusiness, analyzeUrl, analyzeVoiceInput, updateBusiness, getBusinessForEdit } from "@/actions/business";
 import { Button, Input } from "@/components/ui";
 import { AIChatbotOnboarding } from "@/components/AIChatbotOnboarding";
+import { ImageUpload } from "@/components/ImageUpload";
 import { Rocket, ArrowRight, ArrowLeft, Loader2, Check, Globe, Sparkles, Plus, X, Instagram, Facebook, Twitter, Linkedin, Globe2, RefreshCw, MessageSquare, Bot, Palette } from "lucide-react";
 
 interface ProductData {
@@ -160,7 +161,6 @@ export default function CreatePage() {
             secondaryColor: biz.secondaryColor || "#f472b6",
             businessType: biz.businessType || "service",
             services: biz.services || [],
-            features: biz.features || [],
             phone: biz.phone || "",
             email: biz.email || "",
             address: biz.address || "",
@@ -961,7 +961,7 @@ export default function CreatePage() {
         <main className="relative z-10 flex-1 flex overflow-hidden">
 
           {/* -- Left sidebar -- */}
-          <aside className="w-72 flex-shrink-0 border-r border-white/5 flex flex-col p-6 gap-4 overflow-y-auto">
+          <aside className="w-72 shrink-0 border-r border-white/5 flex flex-col p-6 gap-4 overflow-y-auto">
             {/* Extraction success badge */}
             {dataExtracted && !isEditMode && (
               <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -976,7 +976,10 @@ export default function CreatePage() {
             {/* Brand preview */}
             <div className="bg-white/4 border border-white/8 rounded-2xl p-4 flex flex-col gap-3">
               {formData.logo ? (
-                <img src={formData.logo} alt="logo" className="h-12 w-auto object-contain rounded-lg" />
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <img src={formData.logo} alt="logo" className="max-w-12 max-h-12 w-auto h-auto object-contain rounded-lg" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white/20"></span>
+                </div>
               ) : (
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0"
                   style={{ background: `linear-gradient(135deg,${formData.primaryColor},${formData.secondaryColor})` }}>
@@ -1065,6 +1068,34 @@ export default function CreatePage() {
                     />
                   </div>
 
+                  {/* Logo Upload */}
+                  <div>
+                    <label className="block text-xs font-semibold text-pink-400/80 uppercase tracking-widest mb-2">
+                      Business Logo <span className="text-white/40 normal-case font-normal tracking-normal">(optional)</span>
+                    </label>
+                    <div className="space-y-3">
+                      {formData.logo && (
+                        <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
+                          <div className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-lg border border-white/10 shrink-0">
+                            <img src={formData.logo} alt="Current logo" className="max-w-10 max-h-10 w-auto h-auto object-contain rounded" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-green-300 font-medium">Current logo (auto-extracted)</p>
+                            <p className="text-xs text-white/40 mt-0.5">You can upload your own logo to replace this</p>
+                          </div>
+                        </div>
+                      )}
+                      <ImageUpload
+                        label={formData.logo ? "Upload Different Logo" : "Upload Logo"}
+                        value={null} // Always allow new upload
+                        onChange={(imageUrl) => setFormData(p => ({ ...p, logo: imageUrl || "" }))}
+                        maxSizeMB={5}
+                        recommendedDimensions="Square format (1:1 ratio) recommended"
+                        className="bg-white/5 border-white/10"
+                      />
+                    </div>
+                  </div>
+
                   {/* Type + colors */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -1114,13 +1145,34 @@ export default function CreatePage() {
                     />
                   </div>
 
-                  {/* Hero image preview */}
-                  {formData.heroImage && (
-                    <div>
-                      <label className="block text-xs font-semibold text-pink-400/80 uppercase tracking-widest mb-2">Hero Image (auto-extracted)</label>
-                      <img src={formData.heroImage} alt="hero" className="w-full h-36 object-cover rounded-xl border border-white/10 opacity-80" />
+                  {/* Hero image preview and upload */}
+                  <div>
+                    <label className="block text-xs font-semibold text-pink-400/80 uppercase tracking-widest mb-2">
+                      Hero Image <span className="text-white/40 normal-case font-normal tracking-normal">(optional)</span>
+                    </label>
+                    <div className="space-y-3">
+                      {formData.heroImage && (
+                        <div className="space-y-2">
+                          <img src={formData.heroImage} alt="Current hero" className="w-full h-36 object-cover rounded-xl border border-white/10 opacity-80" />
+                          <div className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-xl">
+                            <Check className="w-4 h-4 text-green-400 shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-xs text-green-300 font-medium">Current hero image (auto-extracted)</p>
+                              <p className="text-xs text-white/40 mt-0.5">You can upload your own image to replace this</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <ImageUpload
+                        label={formData.heroImage ? "Upload Different Hero Image" : "Upload Hero Image"}
+                        value={null} // Always allow new upload
+                        onChange={(imageUrl) => setFormData(p => ({ ...p, heroImage: imageUrl || "" }))}
+                        maxSizeMB={10}
+                        recommendedDimensions="Wide format (16:9 ratio) recommended, min 1200x675px"
+                        className="bg-white/5 border-white/10"
+                      />
                     </div>
-                  )}
+                  </div>
 
                   {/* Products summary */}
                   {formData.products.length > 0 && (
@@ -1296,7 +1348,10 @@ export default function CreatePage() {
                   <div className="bg-white/4 border border-white/8 rounded-2xl p-5 space-y-4">
                     <div className="flex items-center gap-4">
                       {formData.logo ? (
-                        <img src={formData.logo} alt="logo" className="h-14 w-auto object-contain rounded-lg border border-white/10" />
+                        <div className="relative w-14 h-14 flex items-center justify-center bg-white/5 rounded-lg border border-white/10">
+                          <img src={formData.logo} alt="logo" className="max-w-12 max-h-12 w-auto h-auto object-contain rounded-lg" />
+                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white/20" title="Logo uploaded"></span>
+                        </div>
                       ) : (
                         <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-2xl"
                           style={{ background: `linear-gradient(135deg,${formData.primaryColor},${formData.secondaryColor})` }}>
@@ -1309,6 +1364,11 @@ export default function CreatePage() {
                         <div className="flex gap-1.5 mt-1.5">
                           <div className="w-4 h-4 rounded-full border border-white/15" style={{ background: formData.primaryColor }} />
                           <div className="w-4 h-4 rounded-full border border-white/15" style={{ background: formData.secondaryColor }} />
+                          {formData.heroImage && (
+                            <div className="w-4 h-4 rounded-full bg-green-400/20 border border-green-400/30 flex items-center justify-center" title="Hero image available">
+                              <Check className="w-2.5 h-2.5 text-green-400" />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1362,7 +1422,7 @@ export default function CreatePage() {
             </div>
 
             {/* -- Step nav footer -- */}
-            <div className="flex-shrink-0 flex items-center justify-between px-8 py-4 border-t border-white/5 bg-black/20">
+            <div className="shrink-0 flex items-center justify-between px-8 py-4 border-t border-white/5 bg-black/20">
               <button
                 type="button"
                 onClick={() => {

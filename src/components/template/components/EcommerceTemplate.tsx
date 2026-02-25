@@ -167,7 +167,7 @@ export default function EcommerceTemplate({ data, siteId }: Props) {
           {/* Logo */}
           <div className="flex items-center gap-3 min-w-0">
             {brand?.logo ? (
-              <img src={brand.logo} alt={brandName} className="h-10 w-auto object-contain max-w-[180px]" />
+              <img src={brand.logo} alt={brandName} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
             ) : (
               <>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0" style={{ background: grad }}>
@@ -631,7 +631,7 @@ export default function EcommerceTemplate({ data, siteId }: Props) {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {brand?.logo ? (
-              <img src={brand.logo} alt={brandName} className="h-8 w-auto" />
+              <img src={brand.logo} alt={brandName} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
             ) : (
               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: grad }}>
                 {brandName.charAt(0)}

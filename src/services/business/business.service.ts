@@ -251,6 +251,8 @@ export class BusinessService {
       name: input.name,
       description: input.description,
       logo: input.logo,
+      heroImage: input.heroImage,
+      galleryImages: input.galleryImages ? JSON.stringify(input.galleryImages) : undefined,
       primaryColor: input.primaryColor,
       secondaryColor: input.secondaryColor,
       services: input.services ? JSON.stringify(input.services) : undefined,

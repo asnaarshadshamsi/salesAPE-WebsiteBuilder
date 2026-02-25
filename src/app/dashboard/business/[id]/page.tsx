@@ -94,6 +94,8 @@ export default async function BusinessSettingsPage({ params }: BusinessPageProps
             name: business.name,
             description: business.description || "",
             logo: business.logo || "",
+            heroImage: business.heroImage || "",
+            galleryImages: business.galleryImages ? JSON.parse(business.galleryImages) : [],
             primaryColor: business.primaryColor,
             secondaryColor: business.secondaryColor,
             services: business.services ? JSON.parse(business.services) : [],

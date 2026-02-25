@@ -1,7 +1,10 @@
 "use client";
 
 /**
- * FoodTemplate – URL-scraper template for restaurants, cafes, bakeries & catering.
+ * FoodTemplate – URL-scraper template for restaurants, cafes, bakeries & cat          <div className="flex items-center gap-3 min-w-0">
+            {brand?.logo ? (
+              <img src={brand.logo} alt={brandName} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
+            ) : (g.
  * Warm, rich, food-photography-first design.
  */
 
@@ -96,7 +99,7 @@ export default function FoodTemplate({ data, siteId }: Props) {
           {/* Logo */}
           <div className="flex items-center gap-3 min-w-0">
             {brand?.logo ? (
-              <img src={brand.logo} alt={brandName} className="h-9 w-auto object-contain max-w-[180px]" />
+              <img src={brand.logo} alt={brandName} className="h-6 max-w-24 w-auto object-contain" />
             ) : (
               <>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0" style={{ background: grad }}>

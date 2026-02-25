@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateBusiness, deleteBusiness } from "@/actions/business";
 import { Button, Input, Textarea } from "@/components/ui";
+import { ImageUpload } from "@/components/ImageUpload";
 import { Save, Trash2, Plus, X, Loader2 } from "lucide-react";
 
 interface BusinessEditFormProps {
@@ -12,6 +13,8 @@ interface BusinessEditFormProps {
     name: string;
     description: string;
     logo: string;
+    heroImage: string;
+    galleryImages: string[];
     primaryColor: string;
     secondaryColor: string;
     services: string[];
@@ -35,7 +38,9 @@ export function BusinessEditForm({ business, siteSlug }: BusinessEditFormProps) 
   const [formData, setFormData] = useState({
     name: business.name,
     description: business.description,
-    logo: business.logo,
+    logo: business.logo || "",
+    heroImage: business.heroImage || "",
+    galleryImages: business.galleryImages || [],
     primaryColor: business.primaryColor,
     secondaryColor: business.secondaryColor,
     services: business.services,
@@ -56,6 +61,8 @@ export function BusinessEditForm({ business, siteSlug }: BusinessEditFormProps) 
       name: formData.name,
       description: formData.description,
       logo: formData.logo || undefined,
+      heroImage: formData.heroImage || undefined,
+      galleryImages: formData.galleryImages.filter(img => img && img.trim()),
       primaryColor: formData.primaryColor,
       secondaryColor: formData.secondaryColor,
       services: formData.services,
@@ -148,12 +155,51 @@ export function BusinessEditForm({ business, siteSlug }: BusinessEditFormProps) 
             rows={4}
           />
 
-          <Input
-            label="Logo URL"
+          <ImageUpload
+            label="Business Logo"
             value={formData.logo}
-            onChange={(e) => setFormData((prev) => ({ ...prev, logo: e.target.value }))}
-            placeholder="https://example.com/logo.png"
+            onChange={(imageUrl) => setFormData((prev) => ({ ...prev, logo: imageUrl || "" }))}
+            recommendedDimensions="Logo: 200x80px recommended"
+            maxSizeMB={2}
           />
+
+          <ImageUpload
+            label="Hero Image"
+            value={formData.heroImage}
+            onChange={(imageUrl) => setFormData((prev) => ({ ...prev, heroImage: imageUrl || "" }))}
+            recommendedDimensions="Hero: 1920x1080px recommended"
+            maxSizeMB={5}
+          />
+
+          <div className="space-y-4">
+            <label className="text-sm font-medium text-gray-300 block">
+              Gallery Images (up to 8 images)
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }, (_, index) => (
+                <ImageUpload
+                  key={index}
+                  value={formData.galleryImages[index] || null}
+                  onChange={(imageUrl) => {
+                    const newGallery = [...formData.galleryImages];
+                    if (imageUrl) {
+                      // Add image at this position
+                      newGallery[index] = imageUrl;
+                    } else {
+                      // Remove image and compact array
+                      newGallery.splice(index, 1);
+                    }
+                    // Filter out any undefined/null values and keep only valid images
+                    const cleanedGallery = newGallery.filter(img => img && img.trim());
+                    setFormData((prev) => ({ ...prev, galleryImages: cleanedGallery }));
+                  }}
+                  recommendedDimensions="800x600px"
+                  maxSizeMB={3}
+                  className="aspect-square"
+                />
+              ))}
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>

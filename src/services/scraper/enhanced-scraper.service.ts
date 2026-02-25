@@ -1447,7 +1447,7 @@ const RX = {
 };
 
 // Very high-confidence schema.org type detection (JSON-LD)
-const schemaTypeSignals: Record<BusinessType, RegExp[]> = {
+const schemaTypeSignals: Record<string, RegExp[]> = {
   restaurant: [
     /"@type"\s*:\s*"Restaurant"/i,
     /"@type"\s*:\s*"FoodEstablishment"/i,
@@ -1564,7 +1564,7 @@ const PLATFORM_FINGERPRINTS: Record<string, { type: BusinessType; confidence: nu
 // ==================== LAYER 2: NAVIGATION ANALYSIS ====================
 // Navigation menu links are high-priority signals
 
-const NAVIGATION_PATTERNS: Record<BusinessType, RegExp[]> = {
+const NAVIGATION_PATTERNS: Record<string, RegExp[]> = {
   restaurant: [
     // 'delivery' and 'order-online' excluded — too generic for ecommerce/fashion sites
     /\b(menu|menus|food-menu|drinks|wine-list|takeout|reservations?|book-table)\b/i,
@@ -1605,7 +1605,7 @@ const NAVIGATION_PATTERNS: Record<BusinessType, RegExp[]> = {
 // ==================== LAYER 3: INTENT DETECTION ====================
 // Intent patterns that should override generic keyword collisions
 
-const INTENT_PATTERNS: Record<BusinessType, { patterns: RegExp[]; weight: number }> = {
+const INTENT_PATTERNS: Record<string, { patterns: RegExp[]; weight: number }> = {
   restaurant: {
     patterns: [
       /\b(order (food|online|takeout|delivery)|reserve (a )?table|view (our )?menu|book (a )?reservation)\b/i,
