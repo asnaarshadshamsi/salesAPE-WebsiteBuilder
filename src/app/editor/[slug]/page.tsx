@@ -1,183 +1,217 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { EnhancedVisualEditor } from '@/components/editor/EnhancedVisualEditor';
-import { updateSiteData } from '../../../actions/sites';
-import { ArrowLeft, Save, Eye, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Save, Eye, ExternalLink, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { SiteEditorPanel, EditorChanges } from "@/components/editor/SiteEditorPanel";
+import { saveSiteEditorChanges } from "@/actions/sites";
 
-interface SiteEditorProps {
-  site: any;
-  business: any;
+// ─────────────────────────────────────────────────────────────────────────────
+// Save-status indicator
+// ─────────────────────────────────────────────────────────────────────────────
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+function SaveIndicator({ status }: { status: SaveStatus }) {
+  if (status === "idle") return null;
+  if (status === "saving")
+    return <span className="flex items-center gap-1.5 text-xs text-slate-400"><RefreshCw size={13} className="animate-spin" /> Saving…</span>;
+  if (status === "saved")
+    return <span className="flex items-center gap-1.5 text-xs text-emerald-400"><CheckCircle size={13} /> Saved</span>;
+  return <span className="flex items-center gap-1.5 text-xs text-red-400"><AlertCircle size={13} /> Save failed</span>;
 }
 
-export default function SiteEditor() {
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
+export default function SiteEditorPage() {
   const params = useParams();
   const router = useRouter();
+  const slug = params.slug as string;
+
   const [site, setSite] = useState<any>(null);
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [isDirty, setIsDirty] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0); // bump to force iframe reload
 
+  // Accumulate pending changes between saves
+  const pendingChanges = useRef<EditorChanges>({});
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Load site ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    async function loadSite() {
+    if (!slug) return;
+    (async () => {
       try {
-        const response = await fetch(`/api/sites/${params.slug}/editor`);
-        const data = await response.json();
-        
+        const res = await fetch(`/api/sites/${slug}/editor`);
+        const data = await res.json();
         if (data.success) {
           setSite(data.site);
           setBusiness(data.business);
         } else {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }
-      } catch (error) {
-        console.error('Error loading site:', error);
-        router.push('/dashboard');
+      } catch {
+        router.push("/dashboard");
       } finally {
         setLoading(false);
       }
-    }
+    })();
+  }, [slug, router]);
 
-    if (params.slug) {
-      loadSite();
-    }
-  }, [params.slug, router]);
-
-  const handleSave = async (editorData: any) => {
-    if (!site?.id) {
-      alert('Error: Site ID not found');
-      return;
-    }
-
-    setSaving(true);
+  // ── Persist changes ────────────────────────────────────────────────────────
+  const persist = useCallback(async (changes: EditorChanges) => {
+    if (!site?.id) return;
+    setSaveStatus("saving");
     try {
-      // The enhanced editor already converts data to the correct format
-      const result = await updateSiteData(site.id, editorData);
-      
+      const result = await saveSiteEditorChanges(site.id, changes);
       if (result.success) {
-        setSite({ ...site, ...editorData });
-        // Show success message
-        alert('Site saved successfully!');
+        setSaveStatus("saved");
+        setIsDirty(false);
+        pendingChanges.current = {};
+        // Refresh the preview iframe after a successful save
+        setPreviewKey((k) => k + 1);
+        setTimeout(() => setSaveStatus("idle"), 3000);
       } else {
-        alert('Error saving site: ' + result.error);
+        setSaveStatus("error");
       }
-    } catch (error) {
-      console.error('Error saving site:', error);
-      alert('Error saving site: ' + (error as Error).message);
-    } finally {
-      setSaving(false);
+    } catch {
+      setSaveStatus("error");
     }
+  }, [site?.id]);
+
+  // ── onChange from panel → merge + auto-save ────────────────────────────────
+  const handleChange = useCallback((changes: EditorChanges) => {
+    pendingChanges.current = { ...pendingChanges.current, ...changes };
+    setIsDirty(true);
+    setSaveStatus("idle");
+
+    // Debounce: auto-save 2 s after last keystroke
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      persist(pendingChanges.current);
+    }, 2000);
+  }, [persist]);
+
+  // ── Manual save ────────────────────────────────────────────────────────────
+  const handleManualSave = () => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    persist(pendingChanges.current);
   };
 
-  const handlePreview = () => {
-    if (!site?.slug) {
-      alert('Error: Site slug not found');
-      return;
-    }
-    window.open(`/sites/${site.slug}`, '_blank');
-  };
-
+  // ── Guards ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="relative mx-auto w-16 h-16">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600"></div>
-          </div>
-          <p className="mt-6 text-gray-600 font-medium">Loading editor...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-violet-500 mx-auto" />
+          <p className="mt-4 text-slate-400 text-sm">Loading editor…</p>
         </div>
       </div>
     );
   }
 
-  if (!site) {
+  if (!site || !business) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Site not found</h1>
-          <Button onClick={() => router.push('/dashboard')}>
-            <ArrowLeft size={16} className="mr-2" />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-white text-lg font-semibold">Site not found</p>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm rounded-lg transition"
+          >
             Back to Dashboard
-          </Button>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/dashboard')}
-                className="flex items-center"
-              >
-                <ArrowLeft size={16} className="mr-2" />
-                Back to Dashboard
-              </Button>
-              
-              <div className="border-l pl-4">
-                <h1 className="text-lg font-semibold text-gray-900">
-                  Editing: {business?.name}
-                </h1>
-                <p className="text-sm text-gray-500">{site.slug}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => setPreviewMode(!previewMode)}
-              >
-                <Eye size={16} className="mr-2" />
-                {previewMode ? 'Edit Mode' : 'Preview'}
-              </Button>
-
-              <Button
-                onClick={() => window.open(`/sites/${site.slug}`, '_blank')}
-                variant="outline"
-              >
-                View Live Site
-              </Button>
-
-              <Button
-                onClick={() => handleSave({})}
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Save size={16} className="mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
+    <div className="flex flex-col h-screen bg-slate-950 overflow-hidden">
+      {/* ── Top bar ─────────────────────────────────────────────────────── */}
+      <header className="shrink-0 flex items-center justify-between px-4 h-14 border-b border-slate-800 bg-slate-900 z-10">
+        {/* Left */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition"
+          >
+            <ArrowLeft size={15} />
+            Dashboard
+          </button>
+          <span className="text-slate-700">|</span>
+          <div>
+            <span className="text-white text-sm font-semibold">{business.name}</span>
+            <span className="ml-2 text-slate-500 text-xs">{slug}</span>
           </div>
+        </div>
+
+        {/* Right */}
+        <div className="flex items-center gap-3">
+          <SaveIndicator status={saveStatus} />
+
+          {isDirty && saveStatus !== "saving" && (
+            <span className="text-xs text-amber-400">Unsaved changes</span>
+          )}
+
+          <button
+            onClick={() => window.open(`/sites/${slug}`, "_blank")}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs border border-slate-700 rounded-lg px-3 py-1.5 transition hover:border-slate-500"
+          >
+            <Eye size={13} />
+            View Live
+            <ExternalLink size={11} />
+          </button>
+
+          <button
+            onClick={handleManualSave}
+            disabled={saveStatus === "saving"}
+            className="flex items-center gap-1.5 text-white text-xs bg-violet-600 hover:bg-violet-700 disabled:opacity-50 rounded-lg px-3 py-1.5 transition font-medium"
+          >
+            <Save size={13} />
+            Save
+          </button>
         </div>
       </header>
 
-      {/* Editor */}
-      <main className="h-[calc(100vh-4rem)]">
-        {previewMode ? (
-          <div className="h-full">
-            {/* Render the actual site for preview */}
+      {/* ── Split pane ──────────────────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left: editor panel */}
+        <aside className="w-72 shrink-0 overflow-hidden border-r border-slate-800">
+          <SiteEditorPanel
+            site={site}
+            business={business}
+            onChange={handleChange}
+          />
+        </aside>
+
+        {/* Right: live preview */}
+        <main className="flex-1 overflow-hidden bg-slate-800 flex flex-col">
+          {/* Preview toolbar */}
+          <div className="shrink-0 flex items-center justify-between px-4 py-2 border-b border-slate-700 bg-slate-900">
+            <span className="text-xs text-slate-500 font-medium tracking-wide uppercase">Preview</span>
+            <button
+              onClick={() => setPreviewKey((k) => k + 1)}
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition"
+            >
+              <RefreshCw size={12} />
+              Refresh
+            </button>
+          </div>
+
+          {/* Iframe */}
+          <div className="flex-1 overflow-hidden p-4">
             <iframe
-              src={`/sites/${site.slug}?preview=true`}
-              className="w-full h-full border-none"
+              key={previewKey}
+              src={`/sites/${slug}?preview=true&t=${previewKey}`}
+              className="w-full h-full rounded-xl border border-slate-700 bg-white"
               title="Site Preview"
             />
           </div>
-        ) : (
-          <EnhancedVisualEditor
-            siteData={{ ...site, business }}
-            onSave={handleSave}
-          />
-        )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
