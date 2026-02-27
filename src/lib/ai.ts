@@ -486,7 +486,7 @@ const templates: Record<BusinessType, {
       "Each bottle holds a unique olfactory journey",
     ],
     aboutTemplates: [
-      `{name} is a luxury fragrance house${'{city}' ? ` in {city}` : ''} dedicated to the art of artisanal perfumery. We source the finest raw materials — rare florals, exotic woods, and precious resins — to craft scents that transcend the ordinary.`,
+      `{name} is a luxury fragrance house dedicated to the art of artisanal perfumery. We source the finest raw materials — rare florals, exotic woods, and precious resins — to craft scents that transcend the ordinary.`,
       `At {name}, fragrance is more than a product — it's an expression of identity. Our master perfumers blend tradition with innovation to create signature scents that become a part of who you are.`,
     ],
     ctaOptions: ["Explore Collection", "Book Consultation", "Shop Fragrances", "Discover Your Scent", "Custom Creation"],

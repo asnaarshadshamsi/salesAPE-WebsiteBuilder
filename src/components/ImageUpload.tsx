@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "./ui";
 
@@ -25,6 +25,11 @@ export function ImageUpload({
   const [error, setError] = useState("");
   const [preview, setPreview] = useState<string | null>(value || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync preview state when value prop changes
+  useEffect(() => {
+    setPreview(value || null);
+  }, [value]);
 
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,54 +102,78 @@ export function ImageUpload({
       />
 
       {preview ? (
-        <div className="relative group">
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-full h-48 object-cover rounded-xl border border-zinc-700"
-          />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
-            <Button
-              variant="outline"
-              onClick={handleRemove}
-              className="!bg-red-500 !text-white !border-red-600 hover:!bg-red-600"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Remove
-            </Button>
+        <div className="space-y-2">
+          <div className="relative group">
+            <img
+              src={preview}
+              alt="Current image"
+              className="w-full h-48 object-cover rounded-xl border border-zinc-700"
+            />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClick}
+                disabled={isUploading}
+                className="bg-blue-500 text-white border-blue-600 hover:bg-blue-600"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {isUploading ? "Uploading..." : "Change Image"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleRemove}
+                className="bg-red-500 text-white border-red-600 hover:bg-red-600"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Remove
+              </Button>
+            </div>
           </div>
+          <p className="text-xs text-gray-500 text-center">
+            ✅ This image is currently used on your website
+          </p>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={isUploading}
-          className="w-full h-48 border-2 border-dashed border-zinc-700 rounded-xl bg-zinc-900/50 hover:bg-zinc-800/50 hover:border-pink-500/50 transition-all flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-pink-400 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="w-10 h-10 animate-spin" />
-              <span className="text-sm">Uploading...</span>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
-                <Upload className="w-8 h-8" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium">Click to upload image</p>
-                {recommendedDimensions && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleClick}
+            disabled={isUploading}
+            className="w-full h-48 border-2 border-dashed border-zinc-700 rounded-xl bg-zinc-900/50 hover:bg-zinc-800/50 hover:border-pink-500/50 transition-all flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-pink-400 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="w-10 h-10 animate-spin" />
+                <span className="text-sm">Uploading...</span>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
+                  <Upload className="w-8 h-8" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium">Click to upload image</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Recommended: {recommendedDimensions}
+                    or drag and drop here
                   </p>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Max size: {maxSizeMB}MB
-                </p>
-              </div>
-            </>
-          )}
-        </button>
+                  {recommendedDimensions && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recommended: {recommendedDimensions}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max size: {maxSizeMB}MB
+                  </p>
+                </div>
+              </>
+            )}
+          </button>
+          <p className="text-xs text-gray-500 text-center">
+            📷 No image uploaded yet
+          </p>
+        </div>
       )}
 
       {error && (

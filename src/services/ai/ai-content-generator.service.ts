@@ -266,7 +266,7 @@ JSON output:`;
    * Get business-type-specific templates
    */
   private getBusinessTypeTemplates(businessType: BusinessType) {
-    const templates: Record<BusinessType, any> = {
+    const templates: Record<string, any> = {
       agency: {
         headlines: [
           'Transform Your Brand with Creative Excellence',

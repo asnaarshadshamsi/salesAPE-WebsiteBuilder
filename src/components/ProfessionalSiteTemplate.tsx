@@ -320,7 +320,7 @@ export function ProfessionalSiteTemplate({ site, business, products }: Professio
             {/* Brand */}
             <div className="flex items-center gap-4">
               {business.logo ? (
-                <img src={business.logo} alt={business.name} className="h-12 w-auto" />
+                <img src={business.logo} alt={business.name} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
               ) : (
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md"
                   style={{ background: grad }}>
@@ -905,7 +905,7 @@ export function ProfessionalSiteTemplate({ site, business, products }: Professio
           <div className="lg:col-span-2">
             <div className="flex items-center gap-4 mb-5">
               {business.logo ? (
-                <img src={business.logo} alt={business.name} className="h-12 w-auto" />
+                <img src={business.logo} alt={business.name} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
               ) : (
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: grad }}>
                   <span className="text-white font-bold text-xl">{business.name.charAt(0)}</span>

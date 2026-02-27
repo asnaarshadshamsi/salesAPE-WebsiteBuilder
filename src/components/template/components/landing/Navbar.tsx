@@ -22,7 +22,7 @@ const Navbar = ({ data }: NavbarProps) => {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <a href="#" className="font-display text-xl font-bold tracking-tight text-foreground">
           {data.brand.logo ? (
-            <img src={data.brand.logo} alt={data.brand.name} className="h-8" />
+            <img src={data.brand.logo} alt={data.brand.name} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
           ) : (
             data.brand.name
           )}

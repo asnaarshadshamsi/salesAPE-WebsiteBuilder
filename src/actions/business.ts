@@ -762,7 +762,7 @@ function getServiceIcon(serviceName: string): string {
   const icons: Record<string, string> = {
     // Fitness & Sports
     training: '💪',
-    personal: '🎯',
+    personaltraining: '🎯',
     group: '👥',
     yoga: '🧘',
     pilates: '🤸',
@@ -847,7 +847,7 @@ function getServiceIcon(serviceName: string): string {
     // Education
     tutoring: '📚',
     course: '🎓',
-    training: '👨‍🏫',
+    educationtraining: '👨‍🏫',
     workshop: '🛠️',
     lesson: '📝',
     class: '🏫',
@@ -972,11 +972,11 @@ export async function getBusinessForEdit(businessId: string): Promise<{
     description: string | null;
     logo: string | null;
     heroImage: string | null;
+    galleryImages: string[];
     primaryColor: string;
     secondaryColor: string;
     businessType: string;
     services: string[];
-    features: string[];
     phone: string | null;
     email: string | null;
     address: string | null;
@@ -1002,11 +1002,11 @@ export async function getBusinessForEdit(businessId: string): Promise<{
         description: business.description,
         logo: business.logo,
         heroImage: business.heroImage,
+        galleryImages: business.galleryImages ? JSON.parse(business.galleryImages) : [],
         primaryColor: business.primaryColor,
         secondaryColor: business.secondaryColor,
         businessType: business.businessType,
         services: business.services ? JSON.parse(business.services) : [],
-        features: business.features ? JSON.parse(business.features) : [],
         phone: business.phone,
         email: business.email,
         address: business.address,

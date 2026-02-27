@@ -3,6 +3,7 @@ import { BusinessData } from "../../types/landing";
 interface FooterSectionProps {
   data: NonNullable<BusinessData["footer"]>;
   brandName: string;
+  brandLogo?: string;
   contact?: {
     phone?: string;
     email?: string;
@@ -10,14 +11,20 @@ interface FooterSectionProps {
   };
 }
 
-const FooterSection = ({ data, brandName, contact }: FooterSectionProps) => {
+const FooterSection = ({ data, brandName, brandLogo, contact }: FooterSectionProps) => {
   return (
     <footer className="py-12 border-t border-border">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div className="max-w-sm">
-            <div className="font-display text-lg font-bold text-foreground mb-2">
-              {brandName}
+            <div className="flex items-center gap-3 mb-2">
+              {brandLogo ? (
+                <img src={brandLogo} alt={brandName} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
+              ) : (
+                <div className="font-display text-lg font-bold text-foreground">
+                  {brandName}
+                </div>
+              )}
             </div>
             {data.description && (
               <p className="text-sm text-muted-foreground">

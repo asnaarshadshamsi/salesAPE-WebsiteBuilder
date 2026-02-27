@@ -74,7 +74,7 @@ export default function EcommerceTemplate({ data, siteId }: EcommerceTemplatePro
           {/* Logo */}
           <a href="#" className="flex items-center gap-3">
             {data.brand.logo ? (
-              <img src={data.brand.logo} alt={data.brand.name} className="h-9 w-auto object-contain" />
+              <img src={data.brand.logo} alt={data.brand.name} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
             ) : (
               <span className="text-xl font-bold tracking-tight" style={{ color: primary }}>{data.brand.name}</span>
             )}
@@ -454,7 +454,7 @@ export default function EcommerceTemplate({ data, siteId }: EcommerceTemplatePro
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               {data.brand.logo ? (
-                <img src={data.brand.logo} alt={data.brand.name} className="h-9 w-auto object-contain" />
+                <img src={data.brand.logo} alt={data.brand.name} className="w-auto object-contain" style={{width: '80px', height: '32px'}} />
               ) : (
                 <span className="text-xl font-bold text-white">{data.brand.name}</span>
               )}
