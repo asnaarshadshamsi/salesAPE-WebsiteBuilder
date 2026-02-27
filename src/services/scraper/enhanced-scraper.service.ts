@@ -1504,6 +1504,26 @@ const schemaTypeSignals: Record<BusinessType, RegExp[]> = {
     /"@type"\s*:\s*"Service"/i,
   ],
   other: [],
+  perfume: [],
+  flowershop: [],
+  cafe: [],
+  spa: [],
+  jewelry: [],
+  photography: [],
+  barbershop: [],
+  cleaning: [],
+  petcare: [],
+  law: [],
+  accounting: [],
+  dental: [],
+  hotel: [],
+  events: [],
+  catering: [],
+  tech: [],
+  consulting: [],
+  bakery: [],
+  gym: [],
+  yoga: []
 };
 
 // ==================== LAYER 1: PLATFORM / BOOKING WIDGET DETECTION ====================
@@ -1600,6 +1620,26 @@ const NAVIGATION_PATTERNS: Record<BusinessType, RegExp[]> = {
     /\b(services|quote|estimate|contact|areas?|about|testimonials?)\b/i,
   ],
   other: [],
+  perfume: [],
+  flowershop: [],
+  cafe: [],
+  spa: [],
+  jewelry: [],
+  photography: [],
+  barbershop: [],
+  cleaning: [],
+  petcare: [],
+  law: [],
+  accounting: [],
+  dental: [],
+  hotel: [],
+  events: [],
+  catering: [],
+  tech: [],
+  consulting: [],
+  bakery: [],
+  gym: [],
+  yoga: []
 };
 
 // ==================== LAYER 3: INTENT DETECTION ====================
@@ -1685,6 +1725,86 @@ const INTENT_PATTERNS: Record<BusinessType, { patterns: RegExp[]; weight: number
     patterns: [],
     weight: 0,
   },
+  perfume: {
+    patterns: [],
+    weight: 0
+  },
+  flowershop: {
+    patterns: [],
+    weight: 0
+  },
+  cafe: {
+    patterns: [],
+    weight: 0
+  },
+  spa: {
+    patterns: [],
+    weight: 0
+  },
+  jewelry: {
+    patterns: [],
+    weight: 0
+  },
+  photography: {
+    patterns: [],
+    weight: 0
+  },
+  barbershop: {
+    patterns: [],
+    weight: 0
+  },
+  cleaning: {
+    patterns: [],
+    weight: 0
+  },
+  petcare: {
+    patterns: [],
+    weight: 0
+  },
+  law: {
+    patterns: [],
+    weight: 0
+  },
+  accounting: {
+    patterns: [],
+    weight: 0
+  },
+  dental: {
+    patterns: [],
+    weight: 0
+  },
+  hotel: {
+    patterns: [],
+    weight: 0
+  },
+  events: {
+    patterns: [],
+    weight: 0
+  },
+  catering: {
+    patterns: [],
+    weight: 0
+  },
+  tech: {
+    patterns: [],
+    weight: 0
+  },
+  consulting: {
+    patterns: [],
+    weight: 0
+  },
+  bakery: {
+    patterns: [],
+    weight: 0
+  },
+  gym: {
+    patterns: [],
+    weight: 0
+  },
+  yoga: {
+    patterns: [],
+    weight: 0
+  }
 };
 
 const CLASSIFICATION_MODELS: CategoryModel[] = [
